@@ -1,0 +1,69 @@
+import styles from "./SiteFooter.module.css";
+
+export function SiteFooter() {
+  return (
+    <footer className={styles.footer}>
+      <div className={styles.footerBrand}>
+        <a className={styles.brand} href="#home">
+          <span className={styles.brandMark}>E</span>
+          <span>
+            <strong>Elevation</strong>
+            <small>Coaching Institute</small>
+          </span>
+        </a>
+        <p>
+          Empowering students with knowledge, guidance, and confidence to
+          achieve excellence.
+        </p>
+        <div className={styles.socials}>
+          <span aria-label="Facebook">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.3-1.6 1.7-1.6H16V4.9c-.3 0-1.1-.1-2.1-.1-2.1 0-3.5 1.2-3.5 3.6V11H8v3h2.3v7h3.2Z" />
+            </svg>
+          </span>
+          <span aria-label="Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7.5 3h9A4.5 4.5 0 0 1 21 7.5v9a4.5 4.5 0 0 1-4.5 4.5h-9A4.5 4.5 0 0 1 3 16.5v-9A4.5 4.5 0 0 1 7.5 3Zm0 1.8A2.7 2.7 0 0 0 4.8 7.5v9a2.7 2.7 0 0 0 2.7 2.7h9a2.7 2.7 0 0 0 2.7-2.7v-9a2.7 2.7 0 0 0-2.7-2.7h-9Zm9.45 1.35a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8ZM12 7.2A4.8 4.8 0 1 1 7.2 12 4.8 4.8 0 0 1 12 7.2Zm0 1.8A3 3 0 1 0 15 12a3 3 0 0 0-3-3Z" />
+            </svg>
+          </span>
+          <span aria-label="YouTube">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 8.2a2.8 2.8 0 0 0-2-2c-1.8-.5-7-.5-7-.5s-5.2 0-7 .5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 2.5 12a29 29 0 0 0 .5 3.8 2.8 2.8 0 0 0 2 2c1.8.5 7 .5 7 .5s5.2 0 7-.5a2.8 2.8 0 0 0 2-2 29 29 0 0 0 .5-3.8 29 29 0 0 0-.5-3.8ZM10.2 15.3V8.7L15.8 12l-5.6 3.3Z" />
+            </svg>
+          </span>
+          <span aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6.3 8.1A1.8 1.8 0 1 1 6.3 4.5a1.8 1.8 0 0 1 0 3.6ZM4.8 9.6h3V19h-3V9.6Zm4.8 0h2.9v1.3h.1c.4-.8 1.4-1.7 3-1.7 3.2 0 3.8 2.1 3.8 4.8V19h-3v-4.3c0-1 0-2.4-1.5-2.4s-1.8 1.1-1.8 2.3V19h-3V9.6Z" />
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <h4>Quick Links</h4>
+        <a href="#home">Home</a>
+        <a href="#programs">Programs</a>
+        <a href="#about">About Us</a>
+        <a href="#testimonials">Testimonials</a>
+      </div>
+
+      <div>
+        <h4>Programs</h4>
+        <a href="#programs">Offline PCM</a>
+        <a href="#programs">IELTS Hybrid</a>
+        <a href="#programs">French Online</a>
+      </div>
+
+      <div>
+        <h4>Stay Connected</h4>
+        <a href="mailto:info@kulkarancoaching.ca">info@kulkarancoaching.ca</a>
+        <a href="tel:+14371234567">+1 (437) 123-4567</a>
+        <p className={styles.canadaSmall}>Canada Based</p>
+      </div>
+
+      <p className={styles.copyright}>
+        (c) 2025 Kulkaran Coaching Institute. All rights reserved.
+      </p>
+    </footer>
+  );
+}
