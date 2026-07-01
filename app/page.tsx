@@ -1,4 +1,3 @@
-import styles from "./page.module.css";
 import { BottomCta } from "./components/home/BottomCta/BottomCta";
 import { Faq } from "./components/home/Faq/Faq";
 import { Founder } from "./components/home/Founder/Founder";
@@ -12,7 +11,7 @@ import { Testimonials } from "./components/home/Testimonials/Testimonials";
 
 export default function Home() {
   return (
-    <main className={styles.main}>
+    <main className="w-full overflow-hidden bg-white">
       <Hero />
       <MarqueeRibbon />
       <Programs />
