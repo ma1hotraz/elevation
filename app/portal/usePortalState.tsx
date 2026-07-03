@@ -12,21 +12,35 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { ExternalLink, Pencil, Trash2 } from "lucide-react";
+import {
+  BookOpen,
+  BookOpenCheck,
+  CalendarClock,
+  CheckCircle2,
+  Eye,
+  Link2,
+  FileText,
+  Globe2,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 import type {
   AdminView,
   Course,
   PortalState,
   PortalUser,
   ResourceFormState,
+  ResourceStatus,
   ResourceType,
+  PaymentFormState,
   StudentFormState,
   TestResource,
 } from "./portal.types";
-import { COURSES, CATEGORIES, emptyResourceForm, emptyStudentForm, initialState } from "./portal.data";
+import { COURSES, CATEGORIES, emptyPaymentForm, emptyResourceForm, emptyStudentForm, initialState } from "./portal.data";
 import { portalStyles } from "./portalShared";
 import { createId, loadPortalState, savePortalState, SESSION_KEY } from "./portal.storage";
 import { SortHeader } from "./components/PortalTable";
@@ -46,19 +60,35 @@ export type PortalController = {
   setActiveCourse: (value: Course | "All") => void;
   activeResourceCategory: ResourceType | "All";
   setActiveResourceCategory: (value: ResourceType | "All") => void;
+  activeStudentCourse: Course | "All";
+  setActiveStudentCourse: (value: Course | "All") => void;
+  activeStudentStatus: "All" | "Active" | "Disabled";
+  setActiveStudentStatus: (value: "All" | "Active" | "Disabled") => void;
+  studentSearch: string;
+  setStudentSearch: (value: string) => void;
+  activeResourceStatus: ResourceStatus | "All";
+  setActiveResourceStatus: (value: ResourceStatus | "All") => void;
   resourceSearch: string;
   setResourceSearch: (value: string) => void;
   activeAdminView: AdminView;
   setActiveAdminView: (value: AdminView) => void;
+  loginRole: PortalUser["role"];
+  setLoginRole: (value: PortalUser["role"]) => void;
   studentForm: StudentFormState;
   setStudentForm: Dispatch<SetStateAction<StudentFormState>>;
   resourceForm: ResourceFormState;
   setResourceForm: Dispatch<SetStateAction<ResourceFormState>>;
+  editingResourceId: string | null;
+  isResourceDialogOpen: boolean;
+  openResourceDialog: (resource?: TestResource) => void;
+  closeResourceDialog: () => void;
   editingStudentId: string | null;
   editStudentForm: StudentFormState;
   setEditStudentForm: Dispatch<SetStateAction<StudentFormState>>;
   isAddStudentDialogOpen: boolean;
   setIsAddStudentDialogOpen: Dispatch<SetStateAction<boolean>>;
+  selectedStudentId: string | null;
+  selectedStudent: PortalUser | undefined;
   resourcePagination: PaginationState;
   setResourcePagination: Dispatch<SetStateAction<PaginationState>>;
   studentPagination: PaginationState;
@@ -68,6 +98,7 @@ export type PortalController = {
   visibleCourses: Course[];
   visibleResources: TestResource[];
   studentUsers: PortalUser[];
+  filteredStudentRows: PortalUser[];
   courseSummaries: Array<{ course: Course; students: number; resources: number }>;
   latestResource: TestResource | undefined;
   groupedResources: Array<{ category: ResourceType; resources: TestResource[] }>;
@@ -83,11 +114,16 @@ export type PortalController = {
   cancelEditingStudent: () => void;
   saveStudentEdit: (event: FormEvent<HTMLFormElement>) => void;
   addStudent: (event: FormEvent<HTMLFormElement>) => void;
-  addResource: (event: FormEvent<HTMLFormElement>) => void;
+  openStudentDetails: (student: PortalUser) => void;
+  closeStudentDetails: () => void;
+  savePaymentRecord: (record: PaymentFormState) => void;
+  saveResource: (event: FormEvent<HTMLFormElement>) => void;
   exportResources: () => void;
+  startEditingResource: (resource: TestResource) => void;
   removeResource: (resourceId: string) => void;
   removeStudent: (userId: string) => void;
   removeSelectedStudents: () => void;
+  clearResourceFilters: () => void;
   resetDemoData: () => void;
 };
 
@@ -99,13 +135,21 @@ export function usePortalState(): PortalController {
   const [error, setError] = useState("");
   const [activeCourse, setActiveCourse] = useState<Course | "All">("All");
   const [activeResourceCategory, setActiveResourceCategory] = useState<ResourceType | "All">("All");
+  const [activeStudentCourse, setActiveStudentCourse] = useState<Course | "All">("All");
+  const [activeStudentStatus, setActiveStudentStatus] = useState<"All" | "Active" | "Disabled">("All");
+  const [studentSearch, setStudentSearch] = useState("");
+  const [activeResourceStatus, setActiveResourceStatus] = useState<ResourceStatus | "All">("All");
   const [resourceSearch, setResourceSearch] = useState("");
   const [activeAdminView, setActiveAdminView] = useState<AdminView>("overview");
+  const [loginRole, setLoginRole] = useState<PortalUser["role"]>("student");
   const [studentForm, setStudentForm] = useState(emptyStudentForm);
   const [resourceForm, setResourceForm] = useState(emptyResourceForm);
+  const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
+  const [isResourceDialogOpen, setIsResourceDialogOpen] = useState(false);
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [editStudentForm, setEditStudentForm] = useState(emptyStudentForm);
   const [isAddStudentDialogOpen, setIsAddStudentDialogOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [resourceSorting, setResourceSorting] = useState<SortingState>([]);
   const [studentSorting, setStudentSorting] = useState<SortingState>([]);
   const [resourcePagination, setResourcePagination] = useState<PaginationState>({
@@ -131,6 +175,10 @@ export function usePortalState(): PortalController {
     () => state.users.find((user) => user.id === currentUserId) ?? null,
     [currentUserId, state.users],
   );
+  const selectedStudent = useMemo(
+    () => state.users.find((user) => user.id === selectedStudentId && user.role === "student"),
+    [selectedStudentId, state.users],
+  );
 
   const visibleCourses = currentUser?.role === "admin" ? COURSES : currentUser?.courses ?? [];
 
@@ -151,6 +199,23 @@ export function usePortalState(): PortalController {
     () => state.users.filter((user) => user.role === "student"),
     [state.users],
   );
+
+  const filteredStudentRows = useMemo(() => {
+    const query = studentSearch.trim().toLowerCase();
+
+    return studentUsers.filter((student) => {
+      const status = student.courses.length > 0 ? "Active" : "Disabled";
+      const matchesCourse = activeStudentCourse === "All" || student.courses.includes(activeStudentCourse);
+      const matchesStatus = activeStudentStatus === "All" || status === activeStudentStatus;
+      const matchesSearch =
+        !query ||
+        student.name.toLowerCase().includes(query) ||
+        student.email.toLowerCase().includes(query) ||
+        student.courses.join(" ").toLowerCase().includes(query);
+
+      return matchesCourse && matchesStatus && matchesSearch;
+    });
+  }, [activeStudentCourse, activeStudentStatus, studentSearch, studentUsers]);
 
   const courseSummaries = useMemo(
     () =>
@@ -179,22 +244,118 @@ export function usePortalState(): PortalController {
     return visibleResources.filter((resource) => {
       const matchesCategory =
         activeResourceCategory === "All" || resource.category === activeResourceCategory;
+      const matchesStatus = activeResourceStatus === "All" || resource.status === activeResourceStatus;
       const matchesSearch =
         !query ||
         resource.title.toLowerCase().includes(query) ||
         resource.description.toLowerCase().includes(query) ||
         resource.url.toLowerCase().includes(query) ||
+        resource.answerUrl?.toLowerCase().includes(query) ||
         resource.course.toLowerCase().includes(query) ||
-        resource.category.toLowerCase().includes(query);
+        resource.category.toLowerCase().includes(query) ||
+        resource.status.toLowerCase().includes(query);
 
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesStatus && matchesSearch;
     });
-  }, [activeResourceCategory, resourceSearch, visibleResources]);
+  }, [activeResourceCategory, activeResourceStatus, resourceSearch, visibleResources]);
 
   const selectedStudentIds = useMemo(
     () => Object.keys(studentRowSelection).filter((id) => studentRowSelection[id]),
     [studentRowSelection],
   );
+  const canManageStudents = currentUser?.role === "admin";
+
+  function getResourceTypeMeta(category: ResourceType) {
+    if (category === "Live Test") {
+      return { className: portalStyles.resourceTypeLive, Icon: Link2 };
+    }
+    if (category === "Previous Test") {
+      return { className: portalStyles.resourceTypePrevious, Icon: FileText };
+    }
+    if (category === "Study Material") {
+      return { className: portalStyles.resourceTypeStudy, Icon: BookOpen };
+    }
+    return { className: portalStyles.resourceTypeRevision, Icon: BookOpenCheck };
+  }
+
+  function formatPortalDate(dateValue?: string) {
+    if (!dateValue) return "01 Jul 2026";
+    const date = new Date(`${dateValue}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return dateValue;
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(date);
+  }
+
+  function summarizePaymentRecords(records: Array<{ amount: number; date: string; status: "Paid" | "Pending" | "Refunded" }>) {
+    const total = records.reduce((sum, record) => sum + record.amount, 0);
+    const paid = records.filter((record) => record.status === "Paid").reduce((sum, record) => sum + record.amount, 0);
+    const pending = records.filter((record) => record.status === "Pending").reduce((sum, record) => sum + record.amount, 0);
+    const refunded = records.filter((record) => record.status === "Refunded").reduce((sum, record) => sum + record.amount, 0);
+    const nextDue = records
+      .filter((record) => record.status === "Pending")
+      .sort((left, right) => left.date.localeCompare(right.date))[0]?.date;
+
+    return {
+      total,
+      paid,
+      due: pending,
+      refunded,
+      nextDue,
+    };
+  }
+
+  function openStudentDetails(student: PortalUser) {
+    setSelectedStudentId(student.id);
+    setActiveAdminView("students");
+  }
+
+  function closeStudentDetails() {
+    setSelectedStudentId(null);
+  }
+
+  function savePaymentRecord(record: PaymentFormState) {
+    if (!record.studentId) return;
+
+    const amount = Number(record.amount);
+    if (!Number.isFinite(amount) || amount <= 0) return;
+
+    updateState((current) => ({
+      ...current,
+      users: current.users.map((user) => {
+        if (user.id !== record.studentId || user.role !== "student") return user;
+
+        const currentRecords = user.payments?.records ?? [];
+        const nextRecords = [
+          {
+            id: createId("payment"),
+            label: record.label.trim(),
+            amount,
+            date: record.date,
+            method: record.method,
+            invoice: record.invoice.trim() || `INV-${createId("inv").slice(-4)}`,
+            status: record.status,
+          },
+          ...currentRecords,
+        ];
+        const summary = summarizePaymentRecords(nextRecords);
+
+        return {
+          ...user,
+          payments: {
+            total: summary.total,
+            paid: summary.paid,
+            due: summary.due,
+            refunded: summary.refunded,
+            nextDue: summary.nextDue,
+            records: nextRecords,
+          },
+        };
+      }),
+    }));
+  }
 
   function updateState(updater: (current: PortalState) => PortalState) {
     setState((current) => {
@@ -209,19 +370,23 @@ export function usePortalState(): PortalController {
     const user = state.users.find(
       (candidate) =>
         candidate.email.toLowerCase() === email.trim().toLowerCase() &&
-        candidate.password === password,
+        candidate.password === password &&
+        candidate.role === loginRole,
     );
 
     if (!user) {
-      setError("Check the email and password, then try again.");
+      setError(`Check the ${loginRole} email and password, then try again.`);
       return;
     }
 
     window.localStorage.setItem(SESSION_KEY, user.id);
     setCurrentUserId(user.id);
+    setLoginRole(user.role);
     setActiveCourse("All");
     setActiveResourceCategory("All");
+    setActiveResourceStatus("All");
     setResourceSearch("");
+    closeStudentDetails();
     setError("");
     setEmail("");
     setPassword("");
@@ -232,8 +397,19 @@ export function usePortalState(): PortalController {
     setCurrentUserId(null);
     setActiveCourse("All");
     setActiveResourceCategory("All");
+    setActiveResourceStatus("All");
     setResourceSearch("");
+    closeStudentDetails();
     setStudentRowSelection({});
+    closeResourceDialog();
+  }
+
+  function clearResourceFilters() {
+    setActiveCourse("All");
+    setActiveResourceCategory("All");
+    setActiveResourceStatus("All");
+    setResourceSearch("");
+    setResourcePagination((current) => ({ ...current, pageIndex: 0 }));
   }
 
   function toggleStudentCourse(course: Course) {
@@ -315,6 +491,7 @@ export function usePortalState(): PortalController {
           email: studentForm.email.trim(),
           password: studentForm.password,
           courses: studentForm.courses,
+          joinedOn: new Date().toISOString().slice(0, 10),
         },
       ],
     }));
@@ -325,36 +502,94 @@ export function usePortalState(): PortalController {
     setIsAddStudentDialogOpen(false);
   }
 
-  function addResource(event: FormEvent<HTMLFormElement>) {
+  function openResourceDialog(resource?: TestResource) {
+    if (resource) {
+      setEditingResourceId(resource.id);
+      setResourceForm({
+        title: resource.title,
+        course: resource.course,
+        category: resource.category,
+        status: resource.status,
+        url: resource.url,
+        answerUrl: resource.answerUrl ?? "",
+        answerReleaseStatus: resource.answerReleaseStatus,
+        description: resource.description,
+      });
+    } else {
+      setEditingResourceId(null);
+      setResourceForm(emptyResourceForm);
+    }
+
+    setIsResourceDialogOpen(true);
+  }
+
+  function closeResourceDialog() {
+    setIsResourceDialogOpen(false);
+    setEditingResourceId(null);
+    setResourceForm(emptyResourceForm);
+  }
+
+  function saveResource(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     updateState((current) => ({
       ...current,
-      resources: [
-        {
-          id: createId("resource"),
-          addedOn: new Date().toISOString().slice(0, 10),
-          title: resourceForm.title.trim(),
-          course: resourceForm.course,
-          category: resourceForm.category,
-          url: resourceForm.url.trim(),
-          description: resourceForm.description.trim(),
-        },
-        ...current.resources,
-      ],
+      resources:
+        editingResourceId === null
+          ? [
+              {
+                id: createId("resource"),
+                addedOn: new Date().toISOString().slice(0, 10),
+                title: resourceForm.title.trim(),
+                course: resourceForm.course,
+                category: resourceForm.category,
+                status: resourceForm.status,
+                url: resourceForm.url.trim(),
+                answerUrl: resourceForm.answerUrl.trim() || undefined,
+                answerReleaseStatus: resourceForm.answerUrl.trim()
+                  ? resourceForm.answerReleaseStatus
+                  : "Hidden",
+                description: resourceForm.description.trim(),
+              },
+              ...current.resources,
+            ]
+          : current.resources.map((resource) =>
+              resource.id === editingResourceId
+                ? {
+                    ...resource,
+                    title: resourceForm.title.trim(),
+                    course: resourceForm.course,
+                    category: resourceForm.category,
+                    status: resourceForm.status,
+                    url: resourceForm.url.trim(),
+                    answerUrl: resourceForm.answerUrl.trim() || undefined,
+                    answerReleaseStatus: resourceForm.answerUrl.trim()
+                      ? resourceForm.answerReleaseStatus
+                      : "Hidden",
+                    description: resourceForm.description.trim(),
+                  }
+                : resource,
+            ),
     }));
-    setResourceForm(emptyResourceForm);
+    closeResourceDialog();
     setResourcePagination((current) => ({ ...current, pageIndex: 0 }));
     setActiveAdminView("library");
   }
 
+  function startEditingResource(resource: TestResource) {
+    openResourceDialog(resource);
+    setActiveAdminView("library");
+  }
+
   function exportResources() {
-    const headers = ["Title", "Course", "Category", "URL", "Description", "Added On"];
+    const headers = ["Title", "Course", "Type", "URL", "Answer URL", "Description", "Added On"];
     const rows = filteredResourceRows.map((resource) => [
       resource.title,
       resource.course,
       resource.category,
+      resource.status,
       resource.url,
+      resource.answerUrl ?? "",
       resource.description,
       resource.addedOn,
     ]);
@@ -392,6 +627,9 @@ export function usePortalState(): PortalController {
     if (editingStudentId === userId) {
       cancelEditingStudent();
     }
+    if (selectedStudentId === userId) {
+      closeStudentDetails();
+    }
   }
 
   function removeSelectedStudents() {
@@ -412,9 +650,12 @@ export function usePortalState(): PortalController {
     setCurrentUserId(null);
     setActiveCourse("All");
     setActiveResourceCategory("All");
+    setActiveResourceStatus("All");
     setResourceSearch("");
     setStudentRowSelection({});
     setIsAddStudentDialogOpen(false);
+    closeStudentDetails();
+    closeResourceDialog();
     cancelEditingStudent();
   }
 
@@ -422,7 +663,13 @@ export function usePortalState(): PortalController {
     setResourcePagination((current) =>
       current.pageIndex === 0 ? current : { ...current, pageIndex: 0 },
     );
-  }, [resourceSearch, activeCourse, activeResourceCategory]);
+  }, [resourceSearch, activeCourse, activeResourceCategory, activeResourceStatus]);
+
+  useEffect(() => {
+    setStudentPagination((current) =>
+      current.pageIndex === 0 ? current : { ...current, pageIndex: 0 },
+    );
+  }, [studentSearch, activeStudentCourse, activeStudentStatus]);
 
   useEffect(() => {
     setResourcePagination((current) => {
@@ -433,10 +680,10 @@ export function usePortalState(): PortalController {
 
   useEffect(() => {
     setStudentPagination((current) => {
-      const maxPage = Math.max(0, Math.ceil(studentUsers.length / current.pageSize) - 1);
+      const maxPage = Math.max(0, Math.ceil(filteredStudentRows.length / current.pageSize) - 1);
       return current.pageIndex > maxPage ? { ...current, pageIndex: maxPage } : current;
     });
-  }, [studentUsers.length]);
+  }, [filteredStudentRows.length]);
 
   const resourceColumns = useMemo<ColumnDef<TestResource>[]>(
     () => [
@@ -450,6 +697,7 @@ export function usePortalState(): PortalController {
             <strong>{row.original.title}</strong>
             <span>{row.original.description}</span>
             <small>{row.original.url}</small>
+            {row.original.answerUrl ? <small className={portalStyles.resourceAnswerText}>Answer link added</small> : null}
           </div>
         ),
       },
@@ -458,21 +706,31 @@ export function usePortalState(): PortalController {
         header: ({ column }) => (
           <SortHeader title="Course" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
         ),
-        cell: ({ row }) => <Badge>{row.original.course}</Badge>,
+        cell: ({ row }) => <Badge variant="secondary">{row.original.course}</Badge>,
       },
       {
         accessorKey: "category",
         header: ({ column }) => (
-          <SortHeader title="Category" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
+          <SortHeader title="Type" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
         ),
-        cell: ({ row }) => <Badge>{row.original.category}</Badge>,
+        cell: ({ row }) => {
+          const { className, Icon } = getResourceTypeMeta(row.original.category);
+
+          return (
+            <span className={cn(portalStyles.resourceTypeChip, className)}>
+              <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+              {row.original.category}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "addedOn",
         header: ({ column }) => (
-          <SortHeader title="Added" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
+          <SortHeader title="Added On" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
         ),
       },
+
       {
         id: "actions",
         enableSorting: false,
@@ -482,52 +740,63 @@ export function usePortalState(): PortalController {
             <Button
               type="button"
               variant="secondary"
-              size="sm"
+              size="icon-sm"
+              aria-label="Open link preview"
               onClick={() => window.open(row.original.url, "_blank", "noreferrer")}
-            >
-              <ExternalLink aria-hidden="true" />
-              Open
-            </Button>
+              icon={<Link2 aria-hidden="true" />}
+            />
+
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon-sm"
+              aria-label="Edit resource"
+              onClick={() => startEditingResource(row.original)}
+              icon={<Pencil aria-hidden="true" />}
+            />
             <Button
               type="button"
               variant="destructive"
-              size="sm"
+              size="icon-sm"
+              aria-label="Remove resource"
               onClick={() => removeResource(row.original.id)}
-            >
-              <Trash2 aria-hidden="true" />
-              Remove
-            </Button>
+              icon={<Trash2 aria-hidden="true" />}
+            />
           </div>
         ),
       },
     ],
-    [removeResource],
+    [removeResource, startEditingResource],
   );
 
   const studentColumns = useMemo<ColumnDef<PortalUser>[]>(
     () => [
-      {
-        id: "select",
-        enableSorting: false,
-        header: ({ table }) => (
-          <Checkbox
-            checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(Boolean(value))}
-            aria-label="Select all students"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(Boolean(value))}
-            aria-label={`Select ${row.original.name}`}
-          />
-        ),
-      },
+      ...(canManageStudents
+        ? [
+            {
+              id: "select",
+              enableSorting: false,
+              header: ({ table }: { table: TanstackTable<PortalUser> }) => (
+                <Checkbox
+                  checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+                  onCheckedChange={(value) => table.toggleAllPageRowsSelected(Boolean(value))}
+                  aria-label="Select all students"
+                />
+              ),
+              cell: ({ row }: { row: any }) => (
+                <Checkbox
+                  checked={row.getIsSelected()}
+                  onCheckedChange={(value) => row.toggleSelected(Boolean(value))}
+                  aria-label={`Select ${row.original.name}`}
+                />
+              ),
+            } as ColumnDef<PortalUser>,
+          ]
+        : []),
       {
         accessorKey: "name",
         header: ({ column }) => (
-          <SortHeader title="Student" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
+          <SortHeader title="Name" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
         ),
         cell: ({ row }) => <strong>{row.original.name}</strong>,
       },
@@ -552,10 +821,32 @@ export function usePortalState(): PortalController {
         ),
       },
       {
-        accessorKey: "password",
+        id: "status",
+        accessorFn: (row) => (row.courses.length > 0 ? "Active" : "Disabled"),
         header: ({ column }) => (
-          <SortHeader title="Password" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
+          <SortHeader title="Status" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
         ),
+        cell: ({ row }) => {
+          const status = row.original.courses.length > 0 ? "Active" : "Disabled";
+
+          return (
+            <span
+              className={cn(
+                portalStyles.studentStatusBadge,
+                status === "Active" ? portalStyles.studentStatusActive : portalStyles.studentStatusDisabled,
+              )}
+            >
+              {status}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: "joinedOn",
+        header: ({ column }) => (
+          <SortHeader title="Joined On" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
+        ),
+        cell: ({ row }) => formatPortalDate(row.original.joinedOn),
       },
       {
         id: "actions",
@@ -566,26 +857,36 @@ export function usePortalState(): PortalController {
             <Button
               type="button"
               variant="secondary"
-              size="sm"
-              onClick={() => startEditingStudent(row.original)}
-            >
-              <Pencil aria-hidden="true" />
-              Edit
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={() => removeStudent(row.original.id)}
-            >
-              <Trash2 aria-hidden="true" />
-              Remove
-            </Button>
+              size="icon-sm"
+              aria-label="View student details"
+              onClick={() => openStudentDetails(row.original)}
+              icon={<Eye aria-hidden="true" />}
+            />
+            {canManageStudents ? (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon-sm"
+                  aria-label="Edit student"
+                  onClick={() => startEditingStudent(row.original)}
+                  icon={<Pencil aria-hidden="true" />}
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon-sm"
+                  aria-label="Remove student"
+                  onClick={() => removeStudent(row.original.id)}
+                  icon={<Trash2 aria-hidden="true" />}
+                />
+              </>
+            ) : null}
           </div>
         ),
       },
     ],
-    [removeStudent, startEditingStudent],
+    [canManageStudents, openStudentDetails, removeStudent, startEditingStudent],
   );
 
   const resourcesTable = useReactTable({
@@ -603,7 +904,7 @@ export function usePortalState(): PortalController {
   });
 
   const studentsTable = useReactTable({
-    data: studentUsers,
+    data: filteredStudentRows,
     columns: studentColumns,
     state: {
       sorting: studentSorting,
@@ -633,14 +934,28 @@ export function usePortalState(): PortalController {
     setActiveCourse,
     activeResourceCategory,
     setActiveResourceCategory,
+    activeStudentCourse,
+    setActiveStudentCourse,
+    activeStudentStatus,
+    setActiveStudentStatus,
+    studentSearch,
+    setStudentSearch,
+    activeResourceStatus,
+    setActiveResourceStatus,
     resourceSearch,
     setResourceSearch,
     activeAdminView,
     setActiveAdminView,
+    loginRole,
+    setLoginRole,
     studentForm,
     setStudentForm,
     resourceForm,
     setResourceForm,
+    editingResourceId,
+    isResourceDialogOpen,
+    openResourceDialog,
+    closeResourceDialog,
     editingStudentId,
     editStudentForm,
     setEditStudentForm,
@@ -655,6 +970,9 @@ export function usePortalState(): PortalController {
     visibleCourses,
     visibleResources,
     studentUsers,
+    filteredStudentRows,
+    selectedStudentId,
+    selectedStudent,
     courseSummaries,
     latestResource,
     groupedResources,
@@ -670,11 +988,16 @@ export function usePortalState(): PortalController {
     cancelEditingStudent,
     saveStudentEdit,
     addStudent,
-    addResource,
+    openStudentDetails,
+    closeStudentDetails,
+    savePaymentRecord,
+    saveResource,
+    startEditingResource,
     exportResources,
     removeResource,
     removeStudent,
     removeSelectedStudents,
+    clearResourceFilters,
     resetDemoData,
   };
 }

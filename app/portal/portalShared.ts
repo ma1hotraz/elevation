@@ -58,27 +58,66 @@ export const portalStyles = {
   page:
     "min-h-screen bg-[linear-gradient(135deg,rgba(5,61,58,0.96),rgba(4,39,36,0.98))_0_0/100%_320px_no-repeat,#f5fbfb] p-7 text-[var(--ink)] max-[640px]:bg-[linear-gradient(135deg,rgba(5,61,58,0.96),rgba(4,39,36,0.98))_0_0/100%_390px_no-repeat,#f5fbfb] max-[640px]:p-[18px]",
   loginPage:
-    "flex min-h-screen flex-col bg-[linear-gradient(135deg,rgba(5,61,58,0.98),rgba(4,39,36,0.99))]",
+    "relative isolate flex min-h-screen flex-col overflow-hidden bg-[radial-gradient(circle_at_32%_8%,rgba(100,255,220,0.12),transparent_24rem),radial-gradient(circle_at_78%_50%,rgba(43,185,158,0.1),transparent_28rem),linear-gradient(135deg,#073f3a_0%,#052f2c_48%,#042825_100%)] px-[clamp(1.4rem,5vw,6rem)] py-[clamp(0.45rem,0.9vw,0.8rem)] text-white before:absolute before:inset-0 before:-z-10 before:bg-[linear-gradient(rgba(116,237,198,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(116,237,198,0.025)_1px,transparent_1px)] before:bg-[size:72px_72px]",
   loginTopbar:
-    "mx-auto mb-7 flex w-full max-w-[1120px] items-center justify-between gap-[18px] max-[980px]:mb-1.5 max-[640px]:flex-wrap max-[640px]:items-start",
+    "relative z-10 mx-auto flex w-full max-w-[1520px] items-center justify-between gap-[14px] max-[640px]:flex-wrap max-[640px]:items-start",
   logoRow: "inline-flex items-center text-inherit",
   loginLogo: "block w-[clamp(126px,11vw,168px)] object-contain",
   logoImage: "block w-[clamp(150px,13vw,202px)] object-contain",
   loginBackLink:
-    "inline-flex w-fit items-center gap-[9px] font-[850] text-white/85 transition hover:text-white [&_svg]:h-[18px] [&_svg]:w-[18px]",
+    "inline-flex w-fit items-center gap-[10px] text-[1rem] font-black text-white/88 drop-shadow-[0_2px_8px_rgba(0,0,0,0.28)] transition hover:text-[#8ef1ce] [&_svg]:h-5 [&_svg]:w-5",
   loginShell:
-    "mx-auto grid w-full max-w-[1120px] flex-1 grid-cols-[minmax(0,1.05fr)_minmax(340px,0.75fr)] content-center items-center gap-7 max-[980px]:grid-cols-1 max-[980px]:items-start",
-  loginIntro: "text-white",
+    "relative z-10 mx-auto grid w-full max-w-[1520px] flex-1 grid-cols-[minmax(0,1.05fr)_minmax(380px,0.64fr)] content-center items-center gap-[clamp(1rem,3vw,3.2rem)] py-[clamp(0.25rem,0.65vw,0.6rem)] max-[1050px]:grid-cols-1 max-[1050px]:items-start max-[640px]:py-3",
+  loginIntro: "relative max-w-[760px] text-white",
   loginIntroTitle:
-    "mt-7 mb-4 max-w-[720px] text-[3.2rem] leading-[1.02] tracking-normal max-[980px]:text-[2.35rem]",
+    "mb-2 mt-2 max-w-[700px] text-[clamp(2.15rem,3.6vw,3.7rem)] font-black leading-[1.02] tracking-normal text-white drop-shadow-[0_8px_24px_rgba(0,0,0,0.34)] max-[640px]:text-[2rem]",
   loginHeadingAccent: "text-[#74edc6]",
-  loginIntroText: "m-0 max-w-[620px] text-[1.02rem] leading-[1.75] text-white/80",
+  loginIntroText: "m-0 max-w-[610px] text-[clamp(0.96rem,1.05vw,1.08rem)] leading-[1.55] text-white/86",
+  loginTrustPill:
+    "inline-flex min-h-10 items-center gap-3 rounded-full border border-[#8ef1ce]/20 bg-white/[0.08] px-4 text-[0.9rem] font-black text-[#8ef1ce] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_60px_rgba(0,0,0,0.18)] backdrop-blur-md [&_svg]:h-[18px] [&_svg]:w-[18px]",
+  loginFeatureGrid:
+    "mt-[1rem] grid max-w-[680px] grid-cols-4 gap-0 max-[760px]:grid-cols-2 max-[520px]:hidden",
+  loginFeatureItem:
+    "border-l border-white/10 px-[clamp(1rem,2vw,2rem)] first:border-l-0 max-[520px]:border-l-0 max-[520px]:border-t max-[520px]:py-4 max-[520px]:first:border-t-0",
+  loginFeatureIcon:
+    "mb-3 grid h-11 w-11 place-items-center rounded-lg border border-[#8ef1ce]/20 bg-white/[0.06] text-[#72edca] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] [&_svg]:h-5 [&_svg]:w-5",
+  loginFeatureText:
+    "m-0 max-w-[12rem] text-[clamp(0.98rem,1.18vw,1.15rem)] font-black leading-[1.32] text-white",
+  loginFooterNote:
+    "mt-[clamp(1.6rem,3vw,2.6rem)] inline-flex items-center gap-3 text-[0.95rem] font-semibold text-white/86 [&_svg]:h-5 [&_svg]:w-5 [&_svg]:text-[#8ef1ce]",
+  loginWatermark:
+    "pointer-events-none absolute bottom-[-13rem] right-[-8rem] -z-10 h-[50rem] w-[50rem] rounded-full border border-[#8ef1ce]/5 bg-[radial-gradient(circle,rgba(142,241,206,0.08),transparent_58%)] opacity-70",
   demoBox:
     "mt-[26px] grid w-full max-w-[540px] gap-[7px] rounded-xl border border-white/10 bg-white/[0.08] p-4 [&_span]:text-[0.92rem] [&_span]:text-white/85 [&_strong]:text-[#8ef1ce]",
   loginCard:
-    "ml-auto w-full max-w-[420px] overflow-hidden rounded-xl border-[rgba(8,47,43,0.08)] bg-white p-0 text-[#10252b] shadow-[0_24px_70px_rgba(9,72,69,0.08)] max-[640px]:p-[18px] [&_[data-slot=card-content]]:px-[22px] [&_[data-slot=card-content]]:pt-[18px] [&_[data-slot=card-content]]:pb-[22px] [&_[data-slot=card-header]]:px-[22px] [&_[data-slot=card-header]]:pt-[22px] [&_[data-slot=card-header]]:pb-0 [&_form]:grid [&_form]:gap-0.5 [&_h2]:mb-[18px] [&_h2]:text-[1.35rem] [&_h2]:tracking-normal",
+    "ml-auto w-full max-w-[420px] overflow-hidden rounded-[16px] border border-white/80 bg-white/95 p-0 text-[#10252b] shadow-[0_28px_80px_rgba(0,0,0,0.26)] backdrop-blur-xl max-[1050px]:ml-0 max-[640px]:rounded-2xl [&_[data-slot=card-content]]:px-[1.2rem] [&_[data-slot=card-content]]:pb-[1.2rem] [&_[data-slot=card-content]]:pt-0 [&_[data-slot=card-header]]:items-center [&_[data-slot=card-header]]:px-[1.2rem] [&_[data-slot=card-header]]:pb-3 [&_[data-slot=card-header]]:pt-[1.1rem] [&_form]:grid [&_form]:gap-0.5",
+  loginCardIcon:
+    "mb-2.5 grid h-11 w-11 place-items-center rounded-lg border border-[#bdeee0] bg-[#e8fbf4] text-[#0d8a74] [&_svg]:h-5 [&_svg]:w-5",
+  loginCardTitle:
+    "m-0 text-center text-[clamp(1.42rem,1.55vw,1.72rem)] font-black leading-tight tracking-normal text-[#1c3036]",
+  loginCardSubtitle:
+    "m-0 mt-1 text-center text-[0.9rem] font-medium text-[#50656b]",
+  loginInputShell: "relative",
+  loginInputIcon:
+    "pointer-events-none absolute left-4 top-1/2 z-10 h-5 w-5 -translate-y-1/2 text-[#75898e]",
+  loginInput:
+    "h-11 rounded-[8px] border-[#cddadc] bg-white pl-11 pr-12 text-[0.95rem] shadow-[inset_0_1px_0_rgba(16,37,43,0.02)] placeholder:text-[#8b9ca1] focus-visible:border-[#0d8a74] focus-visible:ring-[#0d8a74]/15",
+  loginPasswordToggle:
+    "absolute right-2 top-1/2 z-10 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md border-0 bg-transparent p-0 text-[#5f7378] shadow-none transition hover:bg-[#eef7f5] hover:text-[#087365] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d8a74]/20 [&_svg]:h-5 [&_svg]:w-5",
+  loginFormRow:
+    "mb-3 flex items-center justify-between gap-4 text-[0.88rem] max-[420px]:flex-col max-[420px]:items-start",
+  loginRemember:
+    "inline-flex items-center gap-2 font-semibold text-[#1c3036] [&_input]:h-4 [&_input]:w-4 [&_input]:accent-[#087365]",
+  loginForgot: "font-bold text-[#087365] transition hover:text-[#064f49]",
+  loginSubmitButton:
+    "mt-1 h-12 w-full rounded-[8px] border-[#047365] bg-[linear-gradient(180deg,#0b8d7c_0%,#047365_100%)] text-[1rem] font-black text-white shadow-[0_12px_24px_rgba(4,115,101,0.2)] hover:border-[#035f55] hover:bg-[linear-gradient(180deg,#087c70_0%,#035f55_100%)] hover:text-white",
+  loginSecureDivider:
+    "my-5 grid grid-cols-[1fr_auto_1fr] items-center gap-5 text-[#7a8e93] before:h-px before:bg-[#d9e5e5] after:h-px after:bg-[#d9e5e5] [&_svg]:h-5 [&_svg]:w-5",
+  loginSecureText: "m-0 text-center text-[0.92rem] font-medium text-[#5d7075]",
+  loginDemoActions:
+    "mt-3 flex items-center justify-between gap-3 rounded-lg border border-[#dce8e6] bg-[#f7fbfa] p-2.5 text-[0.78rem] text-[#556e72] max-[420px]:grid",
   formField:
-    "mb-3.5 grid gap-[7px] [&_label]:text-[0.84rem] [&_label]:font-[850] [&_label]:text-[#45595e]",
+    "mb-2.5 grid gap-[6px] [&_label]:text-[0.82rem] [&_label]:font-[850] [&_label]:text-[#45595e]",
   error: "mb-3 mt-0 font-extrabold text-[#b42318]",
   fullWidthButton: "w-full [&+&]:mt-2.5",
   formGrid: "grid grid-cols-2 gap-3 max-[640px]:grid-cols-1",
@@ -148,18 +187,132 @@ export const portalStyles = {
   filterControl: "h-[46px] min-h-[46px] rounded-[10px]",
   tableFrame:
     "overflow-hidden rounded-[14px] border border-[rgba(8,47,43,0.08)] bg-white",
-  resourceTable: "min-w-[940px]",
   resourceTitleCell:
-    "grid min-w-0 gap-[5px] [&_small]:max-w-[540px] [&_small]:overflow-hidden [&_small]:truncate [&_small]:text-[0.76rem] [&_small]:font-extrabold [&_small]:text-[#087365] [&_span]:text-[0.84rem] [&_span]:leading-[1.45] [&_span]:text-[#627579] [&_strong]:text-[0.94rem] [&_strong]:leading-[1.3] [&_strong]:text-[#10252b]",
+    "grid min-w-0 gap-[5px] [&_small]:max-w-[540px] [&_small]:overflow-hidden [&_small]:truncate [&_small]:text-[0.74rem] [&_small]:font-extrabold [&_small]:text-[#087365] [&_span]:text-[0.82rem] [&_span]:leading-[1.45] [&_span]:text-[#627579] [&_strong]:text-[0.96rem] [&_strong]:font-black [&_strong]:leading-[1.24] [&_strong]:text-[#10252b]",
+  resourceAnswerText:
+    "text-[0.72rem] font-black uppercase tracking-[0.12em] text-[#0d7b68]",
+  resourceTypeChip:
+    "inline-flex min-h-[28px] w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.72rem] font-black leading-none",
+  resourceTypeLive: "bg-[#f4edff] text-[#7a3fd1]",
+  resourceTypePrevious: "bg-[#fff5e8] text-[#c06910]",
+  resourceTypeRevision: "bg-[#eaf8f1] text-[#13825f]",
+  resourceTypeStudy: "bg-[#eaf3ff] text-[#1f73d4]",
   tableActions: "flex flex-wrap gap-2",
   coursePills:
     "flex flex-wrap gap-1.5 [&_span]:rounded-full [&_span]:bg-[#e9fbf5] [&_span]:px-2 [&_span]:py-[5px] [&_span]:text-[0.72rem] [&_span]:font-black [&_span]:text-[#087365]",
+  resourceStatusBadge:
+    "inline-flex min-h-[26px] items-center rounded-full px-2.5 py-1 text-[0.7rem] font-black uppercase tracking-[0.11em]",
+  resourceStatusUpcoming: "!bg-[#fff6e7] !text-[#b96800]",
+  resourceStatusLive: "!bg-[#e7fbf4] !text-[#087365]",
+  resourceStatusArchived: "!bg-[#eef2f2] !text-[#5f7378]",
+  resourceLibraryShell: "grid gap-5",
+  resourceDashboardHeader:
+    "grid gap-4 rounded-[18px] border border-[rgba(8,47,43,0.08)] bg-white p-5 shadow-[0_18px_48px_rgba(9,72,69,0.06)]",
+  resourceDashboardTop:
+    "flex flex-wrap items-start justify-between gap-4 max-[640px]:flex-col",
+  resourceDashboardActions: "flex flex-wrap gap-2.5 max-[640px]:w-full",
+  resourceStatGrid: "grid gap-3 xl:grid-cols-4 lg:grid-cols-2",
+  resourceStatCard:
+    "grid gap-3 rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-[linear-gradient(180deg,#ffffff,#f9fcfb)] p-4 shadow-[0_14px_36px_rgba(9,72,69,0.05)]",
+  resourceStatTop: "flex items-start justify-between gap-3",
+  resourceStatIcon:
+    "grid h-11 w-11 place-items-center rounded-[14px] bg-[linear-gradient(180deg,rgba(8,184,146,0.16),rgba(8,115,101,0.06))] text-[#0a7a68]",
+  resourceStatValue:
+    "block text-[1.8rem] leading-none tracking-[-0.06em] text-[#123036]",
+  resourceStatLabel: "text-[0.82rem] font-bold text-[#5f7378]",
+  resourceFilterGrid:
+    "grid grid-cols-[minmax(0,1.7fr)_minmax(170px,0.65fr)_minmax(170px,0.65fr)] gap-3 rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-[#fbfefd] p-4 max-[1100px]:grid-cols-2 max-[640px]:grid-cols-1",
+  resourceFilterField: "mb-0 gap-2",
+  resourceFilterControl:
+    "h-[46px] min-h-[46px] rounded-[10px] bg-white",
+  resourceCountRow:
+    "flex flex-wrap items-center justify-between gap-3 px-1.5 text-[0.84rem] font-bold text-[#5f7378]",
+  resourceTableWrap: "overflow-hidden rounded-[18px] border border-[rgba(8,47,43,0.08)] bg-white",
+  resourceTable: "min-w-[900px]",
+  resourceToolbarButton:
+    "h-[46px] rounded-[10px] px-4 text-[0.92rem] font-black",
+  paymentPageShell: "grid gap-5 text-[#10252b]",
+  paymentHeader:
+    "flex flex-wrap items-start justify-between gap-4 rounded-[18px] border border-[rgba(8,47,43,0.08)] bg-white p-5 shadow-[0_18px_48px_rgba(9,72,69,0.06)]",
+  paymentKicker:
+    "m-0 text-[0.72rem] font-black uppercase tracking-[0.18em] text-[#0d7b68]",
+  paymentTitle:
+    "m-0 mt-1 text-[1.55rem] font-black leading-tight tracking-normal text-[#10252b]",
+  paymentLead:
+    "m-0 mt-2 text-[0.94rem] font-semibold text-[#718287]",
+  paymentHeaderActions: "flex flex-wrap gap-2.5 max-[640px]:w-full max-[640px]:flex-col",
+  paymentStatGrid:
+    "grid gap-3 xl:grid-cols-4 lg:grid-cols-2",
+  paymentFilterGrid:
+    "grid grid-cols-[minmax(0,1.7fr)_minmax(170px,0.7fr)_minmax(170px,0.7fr)] gap-3 rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-white p-4 shadow-[0_12px_34px_rgba(9,72,69,0.04)] max-[1100px]:grid-cols-1",
+  paymentCountRow:
+    "flex flex-wrap items-center justify-between gap-3 px-1.5 text-[0.84rem] font-bold text-[#5f7378]",
+  paymentTableFrame:
+    "overflow-hidden rounded-[18px] border border-[rgba(8,47,43,0.08)] bg-white shadow-[0_12px_34px_rgba(9,72,69,0.04)]",
+  paymentStatusBadge:
+    "inline-flex min-h-[26px] items-center rounded-full px-2.5 py-1 text-[0.72rem] font-black leading-none",
+  paymentToolbarButton:
+    "h-[46px] rounded-[10px] px-4 text-[0.92rem] font-black",
   studentList:
     "grid gap-3 rounded-[14px] border border-[rgba(8,47,43,0.08)] bg-white p-5 text-[#10252b] shadow-[0_16px_42px_rgba(9,72,69,0.06)] max-[640px]:p-[18px]",
   tableToolbar:
     "mb-3.5 flex items-center justify-between gap-3 rounded-[10px] border border-[rgba(8,47,43,0.08)] bg-[#fbfefd] px-3 py-2.5 max-[640px]:w-full max-[640px]:flex-col max-[640px]:items-stretch [&_span]:text-[0.86rem] [&_span]:font-[850] [&_span]:text-[#627579]",
   selectedRow: "[&_td]:bg-[#f0fbf7]",
-  dialogContent: "max-w-[620px] [&_form]:grid [&_form]:gap-0.5",
+  studentPageShell: "grid gap-5 text-[#10252b]",
+  studentPageHeader: "flex flex-wrap items-start justify-between gap-4",
+  studentPageTitle: "m-0 text-[1.55rem] font-black leading-tight tracking-normal text-[#10252b] [&_span]:text-[#0d7b68]",
+  studentPageSubtitle: "m-0 mt-2 text-[0.94rem] font-semibold text-[#718287]",
+  studentHeaderActions: "flex flex-wrap items-center justify-end gap-2.5 max-[640px]:w-full max-[640px]:justify-stretch [&_[data-slot=button]]:max-[640px]:flex-1",
+  studentStatGrid: "grid gap-3 md:grid-cols-3",
+  studentStatCard: "grid grid-cols-[42px_minmax(0,1fr)] items-center gap-3 rounded-[12px] border border-[rgba(8,47,43,0.08)] bg-white px-4 py-4 shadow-[0_12px_34px_rgba(9,72,69,0.04)]",
+  studentStatIcon: "grid h-10 w-10 place-items-center rounded-[10px] bg-[#e9fbf5] text-[#087365] [&_svg]:h-5 [&_svg]:w-5",
+  studentStatLabel: "block text-[0.8rem] font-bold text-[#7a8b90]",
+  studentStatValue: "block text-[1.18rem] font-black leading-tight text-[#10252b]",
+  studentFilterGrid: "grid grid-cols-[minmax(0,1fr)_minmax(170px,240px)_minmax(170px,240px)] gap-3 rounded-[14px] border border-[rgba(8,47,43,0.08)] bg-white p-3 shadow-[0_12px_34px_rgba(9,72,69,0.04)] max-[900px]:grid-cols-1",
+  studentTableFrame: "overflow-hidden rounded-[14px] border border-[rgba(8,47,43,0.08)] bg-white shadow-[0_12px_34px_rgba(9,72,69,0.04)]",
+  studentStatusBadge: "inline-flex min-h-[26px] items-center rounded-full px-2.5 py-1 text-[0.72rem] font-black leading-none",
+  studentStatusActive: "bg-[#e9fbf1] text-[#16845f]",
+  studentStatusDisabled: "bg-[#fff0f1] text-[#cf4c5a]",
+  studentDetailsShell: "grid gap-5 text-[#10252b]",
+  studentDetailsHeader: "flex flex-wrap items-start justify-between gap-4",
+  studentDetailsTitle: "m-0 text-[1.55rem] font-black leading-tight tracking-normal text-[#10252b]",
+  studentDetailsLead: "m-0 mt-2 text-[0.94rem] font-semibold text-[#718287]",
+  studentSummaryGrid: "grid gap-3 md:grid-cols-4",
+  studentSummaryCard:
+    "grid grid-cols-[42px_minmax(0,1fr)] items-center gap-3 rounded-[12px] border border-[rgba(8,47,43,0.08)] bg-white px-4 py-4 shadow-[0_12px_34px_rgba(9,72,69,0.04)]",
+  studentSummaryIcon:
+    "grid h-10 w-10 place-items-center rounded-[10px] bg-[#e9fbf5] text-[#087365] [&_svg]:h-5 [&_svg]:w-5",
+  studentSummaryLabel: "block text-[0.8rem] font-bold text-[#7a8b90]",
+  studentSummaryValue: "block truncate text-[1rem] font-black leading-tight text-[#10252b]",
+  studentDetailsGrid: "grid gap-3 lg:grid-cols-2",
+  studentDetailsCard:
+    "grid gap-3 rounded-[14px] border border-[rgba(8,47,43,0.08)] bg-white p-4 shadow-[0_12px_34px_rgba(9,72,69,0.04)]",
+  studentDetailsCardLabel: "m-0 text-[0.76rem] font-black uppercase tracking-[0.14em] text-[#0d7b68]",
+  studentMetricPill:
+    "grid gap-1 rounded-[12px] border border-[rgba(8,47,43,0.08)] bg-[#fbfefd] p-3 [&_span]:text-[0.76rem] [&_span]:font-bold [&_span]:text-[#718287] [&_strong]:text-[1rem] [&_strong]:font-black [&_strong]:text-[#10252b]",
+  dialogContent:
+    "max-w-[940px] gap-0 overflow-hidden rounded-[18px] border border-[rgba(8,47,43,0.12)] bg-white p-0 text-[#10252b] shadow-[0_30px_96px_rgba(4,39,36,0.28)]",
+  dialogHeader:
+    "border-b border-[#e5eeec] px-6 py-4 sm:px-7",
+  dialogHeaderRow: "gap-1",
+  dialogTitle:
+    "m-0 text-[1.25rem] font-black leading-tight tracking-normal text-[#10252b]",
+  dialogDescription:
+    "m-0 max-w-[58ch] text-[0.92rem] font-medium leading-[1.55] text-[#627579]",
+  dialogBody:
+    "max-h-[calc(100dvh-14rem)] overflow-y-auto px-6 py-5 sm:px-7",
+  dialogForm: "grid gap-4",
+  dialogSection:
+    "grid gap-3 rounded-[12px] border border-[#e1ecea] bg-[#fbfefd] p-4",
+  dialogSectionTitle:
+    "m-0 text-[0.82rem] font-black uppercase tracking-[0.12em] text-[#45595e]",
+  dialogControl:
+    "h-12 rounded-[10px] border-[#d6e3e1] bg-white px-4 text-[0.94rem] text-[#10252b] shadow-[inset_0_1px_0_rgba(16,37,43,0.02)] placeholder:text-[#8b9ca1] focus-visible:border-[#0d8a74] focus-visible:ring-[#0d8a74]/15",
+  dialogFooter:
+    "flex flex-wrap items-center justify-end gap-2.5 border-t border-[#e5eeec] bg-[#fbfefd] px-6 py-4 sm:px-7 max-[640px]:flex-col-reverse max-[640px]:items-stretch",
+  courseChoiceGrid: "grid grid-cols-2 gap-2 max-[520px]:grid-cols-1",
+  courseChoice:
+    "flex min-h-[48px] items-center gap-2.5 rounded-[10px] border border-[#d8e6e3] bg-white px-3.5 py-2.5 text-left text-[0.84rem] font-black text-[#45595e] transition hover:border-[#b9d6d1] hover:bg-[#f7fbfb] has-[[data-state=checked]]:border-[#0d7b68] has-[[data-state=checked]]:bg-[#e8fbf5] has-[[data-state=checked]]:text-[#0a7a68]",
   checkboxGroup:
     "mb-[18px] mt-1 flex flex-wrap gap-x-3.5 gap-y-2.5 [&_strong]:w-full [&_strong]:text-[0.84rem] [&_strong]:text-[#45595e] [&_label]:m-0 [&_label]:inline-flex [&_label]:items-center [&_label]:gap-2",
   editActions:
