@@ -56,7 +56,7 @@ export function AdminOverview({ portal }: AdminOverviewProps) {
             variant="primary"
             size="lg"
             icon={<Plus />}
-            onClick={() => portal.setActiveAdminView("add-link")}
+            onClick={() => portal.openResourceDialog()}
           >
             Add Resource
           </Button>

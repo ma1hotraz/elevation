@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { ClipboardList, FolderOpen, Link as LinkIcon, LogOut, UserPlus, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useEffect } from "react";
+import { BookOpen, ClipboardList, FolderOpen, Link as LinkIcon, LogOut, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { portalKicker, portalStyles } from "../../portalShared";
 import type { PortalController } from "../../usePortalState";
 
@@ -9,17 +9,74 @@ type AdminSidebarProps = {
   portal: PortalController;
 };
 
-export function AdminSidebar({ portal }: AdminSidebarProps) {
-  const currentUser = portal.currentUser;
-  const userInitials =
-    currentUser?.name
-      ?.split(" ")
-      .map((part) => part[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() ?? "EA";
+function getNavItems(portal: PortalController) {
+  const role = portal.currentUser?.role;
 
-  const adminNavItems = [
+  if (role === "teacher") {
+    return [
+      {
+        key: "overview" as const,
+        label: "Overview",
+        icon: <ClipboardList aria-hidden="true" className="h-[17px] w-[17px]" />,
+        onClick: () => portal.setActiveAdminView("overview"),
+      },
+      {
+        key: "create-test" as const,
+        label: "Create Test",
+        icon: <BookOpen aria-hidden="true" className="h-[17px] w-[17px]" />,
+        onClick: () => {
+          portal.setActiveAdminView("create-test");
+          portal.openResourceDialog();
+        },
+      },
+      {
+        key: "add-resource" as const,
+        label: "Add Resources",
+        icon: <FolderOpen aria-hidden="true" className="h-[17px] w-[17px]" />,
+        onClick: () => {
+          portal.setActiveAdminView("add-resource");
+          portal.openResourceDialog();
+        },
+      },
+      {
+        key: "students" as const,
+        label: "Students",
+        icon: <Users aria-hidden="true" className="h-[17px] w-[17px]" />,
+        onClick: () => portal.setActiveAdminView("students"),
+      },
+    ];
+  }
+
+  if (role === "student") {
+    return [
+      {
+        key: "profile" as const,
+        label: "Profile",
+        icon: <User aria-hidden="true" className="h-[17px] w-[17px]" />,
+        onClick: () => portal.setActiveAdminView("profile"),
+      },
+      {
+        key: "performance" as const,
+        label: "Performance",
+        icon: <ClipboardList aria-hidden="true" className="h-[17px] w-[17px]" />,
+        onClick: () => portal.setActiveAdminView("performance"),
+      },
+      {
+        key: "resources" as const,
+        label: "Resources",
+        icon: <FolderOpen aria-hidden="true" className="h-[17px] w-[17px]" />,
+        onClick: () => portal.setActiveAdminView("resources"),
+      },
+      {
+        key: "live-test" as const,
+        label: "Live Test",
+        icon: <LinkIcon aria-hidden="true" className="h-[17px] w-[17px]" />,
+        onClick: () => portal.setActiveAdminView("live-test"),
+      },
+    ];
+  }
+
+  return [
     {
       key: "overview" as const,
       label: "Overview",
@@ -36,13 +93,10 @@ export function AdminSidebar({ portal }: AdminSidebarProps) {
       key: "add-link" as const,
       label: "Add Test Link",
       icon: <LinkIcon aria-hidden="true" className="h-[17px] w-[17px]" />,
-      onClick: () => portal.setActiveAdminView("add-link"),
-    },
-    {
-      key: "student-add" as const,
-      label: "Add Student",
-      icon: <UserPlus aria-hidden="true" className="h-[17px] w-[17px]" />,
-      onClick: () => portal.setIsAddStudentDialogOpen(true),
+      onClick: () => {
+        portal.setActiveAdminView("library");
+        portal.openResourceDialog();
+      },
     },
     {
       key: "students" as const,
@@ -50,42 +104,65 @@ export function AdminSidebar({ portal }: AdminSidebarProps) {
       icon: <Users aria-hidden="true" className="h-[17px] w-[17px]" />,
       onClick: () => portal.setActiveAdminView("students"),
     },
-  ] as const;
+  ];
+}
+
+export function AdminSidebar({ portal }: AdminSidebarProps) {
+  const currentUser = portal.currentUser;
+  const userInitials =
+    currentUser?.name
+      ?.split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ?? "EA";
+
+  const navItems = getNavItems(portal);
+  const role = currentUser?.role ?? "admin";
+
+  const latestLabel =
+    role === "student"
+      ? "Keep an eye on your latest resources"
+      : role === "teacher"
+        ? "Create tests and resources from here"
+        : "Add the first test link";
 
   return (
-    <aside className={portalStyles.adminSidebar} aria-label="Admin shortcuts">
+    <aside className={portalStyles.adminSidebar} aria-label="Portal navigation">
       <div className={portalStyles.sidebarTop}>
-        <Link href="/" className={portalStyles.sidebarBrand}>
+        <a href="/" className={portalStyles.sidebarBrand}>
           <img src="/logo2.png" alt="Elevation Institute" className={portalStyles.sidebarLogo} />
-        </Link>
+        </a>
 
         <div className={portalStyles.sidebarNavGroup}>
           <p className={cn(portalKicker, portalStyles.sidebarKicker)}>Workspace</p>
           <nav className={portalStyles.sidebarNav}>
-            {adminNavItems.map((item) => (
-              <Button
-                key={item.key}
-                type="button"
-                variant="ghost"
-                data-active={portal.activeAdminView === item.key}
-                className={cn(
-                  portalStyles.sidebarItemBase,
-                  portal.activeAdminView === item.key && portalStyles.sidebarItemActive,
-                )}
-                onClick={item.onClick}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Button>
-            ))}
+            {navItems.map((item) => {
+              const isActive =
+                item.key === "add-link" || item.key === "create-test" || item.key === "add-resource"
+                  ? portal.isResourceDialogOpen
+                  : portal.activeAdminView === item.key;
+
+              return (
+                <Button
+                  key={item.key}
+                  type="button"
+                  variant="ghost"
+                  data-active={isActive}
+                  className={cn(portalStyles.sidebarItemBase, isActive && portalStyles.sidebarItemActive)}
+                  onClick={item.onClick}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Button>
+              );
+            })}
           </nav>
         </div>
 
         <div className={portalStyles.sidebarLatestCard}>
           <strong>{portal.latestResource?.title ?? "No resources yet"}</strong>
-          <span>
-            {portal.latestResource ? `Latest ${portal.latestResource.category}` : "Add the first test link"}
-          </span>
+          <span>{portal.latestResource ? `${portal.latestResource.status} ${portal.latestResource.category}` : latestLabel}</span>
         </div>
       </div>
 
@@ -96,10 +173,10 @@ export function AdminSidebar({ portal }: AdminSidebarProps) {
           </div>
           <div className={portalStyles.sidebarUserMeta}>
             <p>Signed in as</p>
-            <strong>{currentUser?.name ?? "Admin User"}</strong>
-            <span>{currentUser?.email ?? "admin@elevation.test"}</span>
+            <strong>{currentUser?.name ?? "Portal User"}</strong>
+            <span>{currentUser?.email ?? "user@elevation.test"}</span>
           </div>
-          <span className={portalStyles.sidebarRoleBadge}>{currentUser?.role ?? "admin"}</span>
+          <span className={portalStyles.sidebarRoleBadge}>{role}</span>
         </div>
 
         <Button

@@ -19,54 +19,27 @@ type ResourceLibraryPanelProps = {
 
 export function ResourceLibraryPanel({ portal }: ResourceLibraryPanelProps) {
   return (
-    <section className={portalStyles.panel}>
-      <div className={portalStyles.panelHeader}>
-        <div>
-          <p>Resource Library</p>
-          <h2>Manage course links and revision materials</h2>
-        </div>
-        <div className={portalStyles.panelHeaderActions}>
-          <Badge>{portal.filteredResourceRows.length} shown</Badge>
-          <Button
-            type="button"
-            size="lg"
-            icon={<Plus />}
-            onClick={() => portal.setActiveAdminView("add-link")}
-          >
-            Add Resource
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="lg"
-            icon={<Download />}
-            onClick={portal.exportResources}
-          >
-            Export
-          </Button>
-        </div>
-      </div>
-
-      <div className={portalStyles.libraryToolbar}>
-        <PortalField className={cn(portalStyles.searchField, portalStyles.filterField)}>
+    <section className={portalStyles.resourceLibraryShell}>
+      <div className={portalStyles.resourceFilterGrid}>
+        <PortalField className={cn(portalStyles.searchField, portalStyles.resourceFilterField)}>
           <Label>Search resources</Label>
-          <div className={portalStyles.searchControl}>
-            <Search aria-hidden="true" />
+          <div className="relative">
+            <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#708084]" />
             <Input
-              className={portalStyles.filterControl}
+              className={portalStyles.resourceFilterControl}
               value={portal.resourceSearch}
               onChange={(event) => portal.setResourceSearch(event.target.value)}
-              placeholder="Search title, description, course, or URL"
+              placeholder="Search title, description, URL, or answer link"
             />
           </div>
         </PortalField>
-        <PortalField className={portalStyles.filterField}>
+        <PortalField className={portalStyles.resourceFilterField}>
           <Label>Course</Label>
           <Select
             value={portal.activeCourse}
             onValueChange={(value) => portal.setActiveCourse(value as PortalController["activeCourse"])}
           >
-            <SelectTrigger className={cn(portalStyles.selectTrigger, portalStyles.filterControl)}>
+            <SelectTrigger className={cn(portalStyles.selectTrigger, portalStyles.resourceFilterControl)}>
               <SelectValue placeholder="All courses" />
             </SelectTrigger>
             <SelectContent>
@@ -79,19 +52,19 @@ export function ResourceLibraryPanel({ portal }: ResourceLibraryPanelProps) {
             </SelectContent>
           </Select>
         </PortalField>
-        <PortalField className={portalStyles.filterField}>
-          <Label>Category</Label>
+        <PortalField className={portalStyles.resourceFilterField}>
+          <Label>Type</Label>
           <Select
             value={portal.activeResourceCategory}
             onValueChange={(value) =>
               portal.setActiveResourceCategory(value as PortalController["activeResourceCategory"])
             }
           >
-            <SelectTrigger className={cn(portalStyles.selectTrigger, portalStyles.filterControl)}>
-              <SelectValue placeholder="All categories" />
+            <SelectTrigger className={cn(portalStyles.selectTrigger, portalStyles.resourceFilterControl)}>
+              <SelectValue placeholder="All types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">All categories</SelectItem>
+              <SelectItem value="All">All types</SelectItem>
               {CATEGORIES.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -100,9 +73,28 @@ export function ResourceLibraryPanel({ portal }: ResourceLibraryPanelProps) {
             </SelectContent>
           </Select>
         </PortalField>
+
       </div>
 
-      <div className={portalStyles.tableFrame}>
+      <div className={portalStyles.resourceCountRow}>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="button" variant="secondary" onClick={portal.clearResourceFilters}>
+            Clear filters
+          </Button>
+          <span>{portal.filteredResourceRows.length} resources found</span>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-2.5 max-[640px]:w-full max-[640px]:justify-stretch [&_[data-slot=button]]:max-[640px]:flex-1">
+          <Badge variant="outline">{portal.filteredResourceRows.length} shown</Badge>
+          <Button type="button" icon={<Plus />} onClick={() => portal.openResourceDialog()}>
+            Add Test
+          </Button>
+          <Button type="button" variant="secondary" icon={<Download />} onClick={portal.exportResources}>
+            Export
+          </Button>
+        </div>
+      </div>
+
+      <div className={portalStyles.resourceTableWrap}>
         <Table className={portalStyles.resourceTable}>
           <TableHeader>
             {portal.resourcesTable.getHeaderGroups().map((headerGroup) => (
