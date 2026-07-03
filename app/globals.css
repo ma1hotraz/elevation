@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Space+Grotesk:wght@500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Playfair+Display:wght@700;800;900&family=Space+Grotesk:wght@500;700&display=swap");
 
 @layer theme, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);

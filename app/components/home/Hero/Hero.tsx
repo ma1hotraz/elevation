@@ -130,6 +130,7 @@ export function Hero() {
               width={720}
               height={720}
               priority
+              loading="eager"
             />
             <div className="absolute right-2 bottom-[64px] w-[228px] rotate-[-2deg] rounded-[18px] bg-white/95 p-[15px_18px] text-[#063a37] shadow-[0_24px_70px_rgba(0,0,0,0.22)] max-[860px]:bottom-2 max-[520px]:right-0 max-[520px]:bottom-0 max-[520px]:w-[190px] max-[520px]:rounded-[15px] max-[520px]:p-[11px_13px]">
               <b
