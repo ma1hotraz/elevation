@@ -369,13 +369,11 @@ export function usePortalState(): PortalController {
     event.preventDefault();
     const user = state.users.find(
       (candidate) =>
-        candidate.email.toLowerCase() === email.trim().toLowerCase() &&
-        candidate.password === password &&
-        candidate.role === loginRole,
+        candidate.email.toLowerCase() === email.trim().toLowerCase() &&        candidate.password === password,
     );
 
     if (!user) {
-      setError(`Check the ${loginRole} email and password, then try again.`);
+      setError("Check your email and password, then try again.");
       return;
     }
 
