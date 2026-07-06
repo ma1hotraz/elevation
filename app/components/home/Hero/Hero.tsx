@@ -44,8 +44,28 @@ export function Hero() {
             <a className={navLink} href="#contact">Contact</a>
           </div>
 
-          <Button asChild variant="secondary" size="lg" className="justify-self-end max-[520px]:text-[0.72rem]">
-            <Link href="/portal">Learning Portal</Link>
+          <Button
+            asChild
+            variant="ghost"
+            className="h-auto justify-self-end rounded-full border border-white/12 bg-white px-[14px] py-[10px] text-[#063a37] shadow-[0_18px_42px_rgba(0,0,0,0.16)] hover:-translate-y-0.5 hover:bg-[#f5fffb] hover:text-[#063a37] max-[520px]:px-[11px] max-[520px]:py-[8px]"
+          >
+            <Link href="/portal" aria-label="Open learning portal">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0c8f79,#67e7c6)] text-white shadow-[0_10px_22px_rgba(8,115,101,0.22)] max-[520px]:h-6 max-[520px]:w-6">
+                <span className="h-2 w-2 rounded-full bg-white" />
+              </span>
+              <span className="grid text-left leading-none">
+                <span className="text-[0.56rem] font-black uppercase tracking-[0.16em] text-[#0d8b77] max-[520px]:text-[0.5rem]">
+                  Student Access
+                </span>
+                <span className="text-[0.82rem] font-black tracking-[0.01em] text-[#063a37] max-[520px]:text-[0.72rem]">
+                  Learning Portal
+                </span>
+              </span>
+              <ArrowRight
+                aria-hidden="true"
+                className="h-3.5 w-3.5 text-[#063a37] transition-transform group-hover/button:translate-x-0.5"
+              />
+            </Link>
           </Button>
         </nav>
 
@@ -215,3 +235,6 @@ export function Hero() {
     </section>
   );
 }
+
+
+
