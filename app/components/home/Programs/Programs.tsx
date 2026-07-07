@@ -52,13 +52,13 @@ export function Programs() {
       className={`${sectionFrame} px-0 pb-[76px] text-center max-[520px]:pb-[44px]`}
       id="programs"
     >
-      <SectionEyebrow>Our Programs</SectionEyebrow>
+      <SectionEyebrow>What Students Get</SectionEyebrow>
       <SectionTitle>
-        Courses Designed for <span className="text-[#0e8f78]">Real Results</span>
+        Structured Support for <span className="text-[#0e8f78]">Real Results</span>
       </SectionTitle>
       <SectionIntro className="mt-[15px] mb-11 max-[520px]:mb-[30px] max-[520px]:text-[0.95rem] max-[520px]:leading-[1.6]">
-        Expert-led coaching with a structured approach, personal attention,
-        and a clear path from basics to performance.
+        Each learning path is built to give students expert teaching, guided
+        practice, personal attention, and a clear route to better performance.
       </SectionIntro>
 
       <div className="grid grid-cols-3 gap-[26px] text-left max-[980px]:grid-cols-1 max-[520px]:gap-4">
@@ -133,7 +133,7 @@ export function Programs() {
                   tone.link,
                 )}
               >
-                Learn More
+                See Details
                 <ArrowRight
                   aria-hidden="true"
                   className={cx("grid h-[34px] w-[34px] place-items-center rounded-full text-[0.86rem]", tone.arrow)}

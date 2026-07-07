@@ -32,8 +32,15 @@ export function BottomCta() {
         </div>
 
         <div className="mt-[22px] flex flex-wrap gap-3.5">
-          <a href="#contact" className="inline-flex items-center justify-center gap-2.5 rounded-full bg-white px-6 py-3.5 font-black text-[#063a37] shadow-[0_18px_42px_rgba(0,0,0,0.16)]">
-            Book Free Counselling <ArrowRight aria-hidden="true" />
+          <a
+            href="#contact"
+            className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-[#0d8b77] bg-[linear-gradient(180deg,#11a38c_0%,#086d5e_100%)] px-6 py-3.5 font-black text-white shadow-[0_22px_54px_rgba(0,0,0,0.24)] ring-1 ring-[#8ef1ce]/22 transition hover:-translate-y-0.5 hover:border-[#8ef1ce] hover:bg-[linear-gradient(180deg,#12ad95_0%,#097866_100%)]"
+          >
+            Book Free Counselling
+            <ArrowRight
+              aria-hidden="true"
+              className="h-[18px] w-[18px] text-white transition-transform group-hover:translate-x-0.5"
+            />
           </a>
           <a href="#sample-tests" className="inline-flex items-center justify-center gap-2.5 rounded-full border border-white/18 bg-white/8 px-6 py-3.5 font-black text-white">
             View Sample Tests

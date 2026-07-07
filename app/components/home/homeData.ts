@@ -5,7 +5,7 @@ export const programs = [
     subtitle: "Physics / Chemistry / Math",
     tag: "Offline",
     description:
-      "Comprehensive coaching for Grade 9-12 with concept clarity, guided practice, doubt clearing, and exam preparation.",
+      "Students get concept clarity, guided practice, regular doubt support, and focused exam preparation for Grade 9-12 PCM.",
     points: ["Grade 9-12", "Small Batches"],
     accent: "green",
   },
@@ -15,7 +15,7 @@ export const programs = [
     subtitle: "Offline + Online",
     tag: "Hybrid",
     description:
-      "Academic and General Training with live sessions, speaking labs, mock tests, and personalized writing feedback.",
+      "Students get live sessions, speaking labs, mock tests, and personalized writing feedback for Academic and General Training.",
     points: ["Flexible Timing", "Expert Trainers"],
     accent: "blue",
   },
@@ -25,7 +25,7 @@ export const programs = [
     subtitle: "Beginner to Advanced",
     tag: "Online",
     description:
-      "Interactive French lessons for real-life conversations, grammar, pronunciation, cultural confidence, and fluency.",
+      "Students get interactive lessons that build real-life conversation skills, grammar, pronunciation, and confidence in French.",
     points: ["Live Online Classes", "Certified Trainers"],
     accent: "purple",
   },
