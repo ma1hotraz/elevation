@@ -9,7 +9,7 @@ import { usePortalState } from "./usePortalState";
 export function PortalApp() {
   const portal = usePortalState();
 
-  if (!portal.currentUser) {
+  if (!portal.currentUser || portal.authView === "password-reset") {
     return <PortalLoginScreen portal={portal} />;
   }
 

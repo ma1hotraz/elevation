@@ -160,17 +160,17 @@ export const portalStyles = {
     "bg-white/[0.095] text-white shadow-[inset_3px_0_0_#74edc6,inset_0_0_0_1px_rgba(255,255,255,0.03)]",
   sidebarLatestCard:
     "mt-px grid gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.075] p-[14px_13px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] [&_span]:text-[0.76rem] [&_span]:font-semibold [&_span]:text-white/65 [&_strong]:text-[0.9rem] [&_strong]:font-bold [&_strong]:leading-[1.35] [&_strong]:text-white",
-  sidebarFooter: "grid gap-2.5 pt-[18px]",
+  sidebarFooter: "border-t border-white/10 pt-4",
   sidebarAccount:
-    "grid grid-cols-[38px_minmax(0,1fr)] items-center gap-2.5 rounded-[10px] border border-white/10 bg-white/[0.075] p-[11px] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
+    "grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-1",
+
   sidebarAvatar:
-    "grid h-[38px] w-[38px] place-items-center rounded-[9px] bg-[linear-gradient(180deg,rgba(142,241,206,0.2),rgba(255,255,255,0.08))] text-[0.74rem] font-black tracking-[0.04em] text-[#dffdf3] shadow-[inset_0_0_0_1px_rgba(142,241,206,0.22)]",
+    "grid h-10 w-10 place-items-center rounded-full bg-white/[0.08] text-[0.72rem] font-black tracking-[0.04em] text-white/88 ring-1 ring-white/10",
   sidebarUserMeta:
-    "min-w-0 [&_p]:mb-[3px] [&_p]:mt-0 [&_p]:truncate [&_p]:text-[0.62rem] [&_p]:font-black [&_p]:uppercase [&_p]:tracking-[0.14em] [&_p]:text-[#8ef1ce] [&_span]:mt-[3px] [&_span]:block [&_span]:truncate [&_span]:text-[0.7rem] [&_span]:font-bold [&_span]:text-white/65 [&_strong]:block [&_strong]:truncate [&_strong]:text-[0.84rem] [&_strong]:font-black [&_strong]:leading-[1.2] [&_strong]:text-white",
-  sidebarRoleBadge:
-    "col-span-full inline-flex min-h-[22px] w-fit items-center rounded-full bg-[#8ef1ce]/10 px-2 py-1 text-[0.65rem] font-black uppercase leading-none text-[#8ef1ce]",
+    "min-w-0 [&_span]:mt-0.5 [&_span]:block [&_span]:truncate [&_span]:text-[0.72rem] [&_span]:font-medium [&_span]:text-white/58 [&_strong]:block [&_strong]:truncate [&_strong]:text-[0.84rem] [&_strong]:font-black [&_strong]:leading-[1.15] [&_strong]:text-white",
+
   sidebarSignOutButton:
-    "min-h-10 justify-center gap-2 rounded-[9px] border border-white/10 bg-white/[0.07] text-[0.82rem] font-black text-white/90 shadow-none hover:bg-white/[0.12] hover:text-white",
+    "h-9 w-9 justify-center rounded-[10px] border border-white/10 bg-white/[0.04] p-0 text-white/78 shadow-none transition-colors hover:bg-white/[0.08] hover:text-white [&_svg]:h-4 [&_svg]:w-4 [&_svg]:text-white/55 hover:[&_svg]:text-white/82",
   panel:
     "rounded-2xl border border-[rgba(8,47,43,0.08)] bg-white p-[18px] shadow-[0_20px_58px_rgba(9,72,69,0.06)]",
   formCard:
@@ -186,7 +186,7 @@ export const portalStyles = {
   searchControl: "relative [&_svg]:pointer-events-none [&_svg]:absolute [&_svg]:left-3 [&_svg]:top-1/2 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:-translate-y-1/2 [&_svg]:text-[#708084] [&_input]:pl-[38px]",
   filterControl: "h-[46px] min-h-[46px] rounded-[10px]",
   tableFrame:
-    "overflow-hidden rounded-[14px] border border-[rgba(8,47,43,0.08)] bg-white",
+    "w-full overflow-hidden rounded-[14px] border border-[rgba(8,47,43,0.08)] bg-white",
   resourceTitleCell:
     "grid min-w-0 gap-[5px] [&_small]:max-w-[540px] [&_small]:overflow-hidden [&_small]:truncate [&_small]:text-[0.74rem] [&_small]:font-extrabold [&_small]:text-[#087365] [&_span]:text-[0.82rem] [&_span]:leading-[1.45] [&_span]:text-[#627579] [&_strong]:text-[0.96rem] [&_strong]:font-black [&_strong]:leading-[1.24] [&_strong]:text-[#10252b]",
   resourceAnswerText:
@@ -227,7 +227,7 @@ export const portalStyles = {
     "h-[46px] min-h-[46px] rounded-[10px] bg-white",
   resourceCountRow:
     "flex flex-wrap items-center justify-between gap-3 px-1.5 text-[0.84rem] font-bold text-[#5f7378]",
-  resourceTableWrap: "overflow-hidden rounded-[18px] border border-[rgba(8,47,43,0.08)] bg-white",
+  resourceTableWrap: "overflow-hidden rounded-[18px] border border-[rgba(8,47,43,0.08)] bg-white pl-3",
   resourceTable: "min-w-[900px]",
   resourceToolbarButton:
     "h-[46px] rounded-[10px] px-4 text-[0.92rem] font-black",
@@ -256,14 +256,14 @@ export const portalStyles = {
   studentList:
     "grid gap-3 rounded-[14px] border border-[rgba(8,47,43,0.08)] bg-white p-5 text-[#10252b] shadow-[0_16px_42px_rgba(9,72,69,0.06)] max-[640px]:p-[18px]",
   tableToolbar:
-    "mb-3.5 flex items-center justify-between gap-3 rounded-[10px] border border-[rgba(8,47,43,0.08)] bg-[#fbfefd] px-3 py-2.5 max-[640px]:w-full max-[640px]:flex-col max-[640px]:items-stretch [&_span]:text-[0.86rem] [&_span]:font-[850] [&_span]:text-[#627579]",
+    "w-full gap-4 border-b border-[rgba(8,47,43,0.14)] bg-[#fbfefd] px-5 py-5 [&_span]:text-[0.86rem] [&_span]:font-[850] [&_span]:text-[#627579]",
   selectedRow: "[&_td]:bg-[#f0fbf7]",
   studentPageShell: "grid gap-5 text-[#10252b]",
   studentPageHeader: "flex flex-wrap items-start justify-between gap-4",
   studentPageTitle: "m-0 text-[1.55rem] font-black leading-tight tracking-normal text-[#10252b] [&_span]:text-[#0d7b68]",
   studentPageSubtitle: "m-0 mt-2 text-[0.94rem] font-semibold text-[#718287]",
   studentHeaderActions: "flex flex-wrap items-center justify-end gap-2.5 max-[640px]:w-full max-[640px]:justify-stretch [&_[data-slot=button]]:max-[640px]:flex-1",
-  studentStatGrid: "grid gap-3 md:grid-cols-3",
+  studentStatGrid: "grid gap-3 md:grid-cols-2",
   studentStatCard: "grid grid-cols-[42px_minmax(0,1fr)] items-center gap-3 rounded-[12px] border border-[rgba(8,47,43,0.08)] bg-white px-4 py-4 shadow-[0_12px_34px_rgba(9,72,69,0.04)]",
   studentStatIcon: "grid h-10 w-10 place-items-center rounded-[10px] bg-[#e9fbf5] text-[#087365] [&_svg]:h-5 [&_svg]:w-5",
   studentStatLabel: "block text-[0.8rem] font-bold text-[#7a8b90]",
@@ -318,3 +318,9 @@ export const portalStyles = {
   editActions:
     "flex flex-wrap gap-2.5 max-[640px]:w-full max-[640px]:flex-col max-[640px]:items-stretch",
 };
+
+
+
+
+
+

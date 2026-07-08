@@ -13,154 +13,216 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  BookOpen,
-  BookOpenCheck,
-  CalendarClock,
-  CheckCircle2,
+  Ban,
   Eye,
+  KeyRound,
   Link2,
-  FileText,
-  Globe2,
   Pencil,
+  ShieldCheck,
   Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import {
+  CATEGORIES,
+  COURSES,
+  emptyPaymentForm,
+  emptyResourceForm,
+  initialState,
+} from "./portal.data";
+import { getAccountFormFromUser, getEmptyAccountForm, createAccount, createPaymentRecord, changeOwnPassword, removeAccount, resetAccountPassword, saveResourceRecord, signIn, toggleAccountStatus, updateAccount, updateOwnProfile } from "./portal.service";
+import { portalStyles } from "./portalShared";
+import { loadPortalState, savePortalState, SESSION_KEY } from "./portal.storage";
 import type {
-  AdminView,
+  AccountFormState,
+  AccountStatus,
+  AdminWorkspaceView,
+  ChangeOwnPasswordInput,
   Course,
+  PaymentFormState,
   PortalState,
   PortalUser,
   ResourceFormState,
   ResourceStatus,
   ResourceType,
-  PaymentFormState,
-  StudentFormState,
+  ResetPasswordResult,
+  StudentWorkspaceView,
+  TeacherWorkspaceView,
   TestResource,
+  UpdateOwnProfileInput,
+  UserRole,
 } from "./portal.types";
-import { COURSES, CATEGORIES, emptyPaymentForm, emptyResourceForm, emptyStudentForm, initialState } from "./portal.data";
-import { portalStyles } from "./portalShared";
-import { createId, loadPortalState, savePortalState, SESSION_KEY } from "./portal.storage";
 import { SortHeader } from "./components/PortalTable";
 
 type TanstackTable<TData> = ReturnType<typeof useReactTable<TData>>;
+type AuthView = "login" | "password-reset";
+type AccountRoleFilter = "All" | "student" | "teacher";
+type AccountDialogMode = "create" | "edit" | null;
 
 export type PortalController = {
   state: PortalState;
   currentUser: PortalUser | null;
+  authView: AuthView;
   email: string;
   setEmail: (value: string) => void;
   password: string;
   setPassword: (value: string) => void;
-  error: string;
-  setError: (value: string) => void;
+  authError: string;
+  setAuthError: (value: string) => void;
+  authInfo: string;
+  setAuthInfo: (value: string) => void;
   activeCourse: Course | "All";
   setActiveCourse: (value: Course | "All") => void;
   activeResourceCategory: ResourceType | "All";
   setActiveResourceCategory: (value: ResourceType | "All") => void;
-  activeStudentCourse: Course | "All";
-  setActiveStudentCourse: (value: Course | "All") => void;
-  activeStudentStatus: "All" | "Active" | "Disabled";
-  setActiveStudentStatus: (value: "All" | "Active" | "Disabled") => void;
-  studentSearch: string;
-  setStudentSearch: (value: string) => void;
   activeResourceStatus: ResourceStatus | "All";
   setActiveResourceStatus: (value: ResourceStatus | "All") => void;
   resourceSearch: string;
   setResourceSearch: (value: string) => void;
-  activeAdminView: AdminView;
-  setActiveAdminView: (value: AdminView) => void;
-  loginRole: PortalUser["role"];
-  setLoginRole: (value: PortalUser["role"]) => void;
-  studentForm: StudentFormState;
-  setStudentForm: Dispatch<SetStateAction<StudentFormState>>;
+  accountSearch: string;
+  setAccountSearch: (value: string) => void;
+  activeAccountCourse: Course | "All";
+  setActiveAccountCourse: (value: Course | "All") => void;
+  activeAccountStatus: "All" | AccountStatus;
+  setActiveAccountStatus: (value: "All" | AccountStatus) => void;
+  activeAccountRole: AccountRoleFilter;
+  setActiveAccountRole: (value: AccountRoleFilter) => void;
+  adminView: AdminWorkspaceView;
+  setAdminView: (value: AdminWorkspaceView) => void;
+  teacherView: TeacherWorkspaceView;
+  setTeacherView: (value: TeacherWorkspaceView) => void;
+  studentView: StudentWorkspaceView;
+  setStudentView: (value: StudentWorkspaceView) => void;
+  accountForm: AccountFormState;
+  setAccountForm: Dispatch<SetStateAction<AccountFormState>>;
+  accountDialogMode: AccountDialogMode;
+  accountDialogError: string;
+  setAccountDialogError: (value: string) => void;
+  editingAccountId: string | null;
+  openCreateAccount: (role?: "student" | "teacher") => void;
+  openEditAccount: (account: PortalUser) => void;
+  closeAccountDialog: () => void;
+  credentialNotice: ResetPasswordResult | null;
+  dismissCredentialNotice: () => void;
+  selectedAccountId: string | null;
+  selectedAccount: PortalUser | undefined;
+  openAccountDetails: (account: PortalUser) => void;
+  closeAccountDetails: () => void;
   resourceForm: ResourceFormState;
   setResourceForm: Dispatch<SetStateAction<ResourceFormState>>;
+  resourceDialogError: string;
+  setResourceDialogError: (value: string) => void;
   editingResourceId: string | null;
   isResourceDialogOpen: boolean;
   openResourceDialog: (resource?: TestResource) => void;
   closeResourceDialog: () => void;
-  editingStudentId: string | null;
-  editStudentForm: StudentFormState;
-  setEditStudentForm: Dispatch<SetStateAction<StudentFormState>>;
-  isAddStudentDialogOpen: boolean;
-  setIsAddStudentDialogOpen: Dispatch<SetStateAction<boolean>>;
-  selectedStudentId: string | null;
-  selectedStudent: PortalUser | undefined;
   resourcePagination: PaginationState;
   setResourcePagination: Dispatch<SetStateAction<PaginationState>>;
-  studentPagination: PaginationState;
-  setStudentPagination: Dispatch<SetStateAction<PaginationState>>;
-  studentRowSelection: RowSelectionState;
-  setStudentRowSelection: Dispatch<SetStateAction<RowSelectionState>>;
+  accountPagination: PaginationState;
+  setAccountPagination: Dispatch<SetStateAction<PaginationState>>;
+  accountRowSelection: RowSelectionState;
+  setAccountRowSelection: Dispatch<SetStateAction<RowSelectionState>>;
   visibleCourses: Course[];
   visibleResources: TestResource[];
   studentUsers: PortalUser[];
-  filteredStudentRows: PortalUser[];
+  teacherUsers: PortalUser[];
+  teacherStudentUsers: PortalUser[];
+  managedAccounts: PortalUser[];
+  filteredAccountRows: PortalUser[];
   courseSummaries: Array<{ course: Course; students: number; resources: number }>;
   latestResource: TestResource | undefined;
-  groupedResources: Array<{ category: ResourceType; resources: TestResource[] }>;
   filteredResourceRows: TestResource[];
-  selectedStudentIds: string[];
+  selectedAccountIds: string[];
   resourcesTable: TanstackTable<TestResource>;
-  studentsTable: TanstackTable<PortalUser>;
+  accountsTable: TanstackTable<PortalUser>;
+  hasCourseAccess: boolean;
   handleLogin: (event: FormEvent<HTMLFormElement>) => void;
   logout: () => void;
-  toggleStudentCourse: (course: Course) => void;
-  toggleEditStudentCourse: (course: Course) => void;
-  startEditingStudent: (student: PortalUser) => void;
-  cancelEditingStudent: () => void;
-  saveStudentEdit: (event: FormEvent<HTMLFormElement>) => void;
-  addStudent: (event: FormEvent<HTMLFormElement>) => void;
-  openStudentDetails: (student: PortalUser) => void;
-  closeStudentDetails: () => void;
-  savePaymentRecord: (record: PaymentFormState) => void;
+  handlePasswordSetup: (nextPassword: string, confirmPassword: string) => Promise<string | null>;
+  saveOwnPassword: (input: ChangeOwnPasswordInput, confirmPassword: string) => Promise<string | null>;
+  saveOwnProfile: (input: UpdateOwnProfileInput) => Promise<string | null>;
+  saveAccount: (event: FormEvent<HTMLFormElement>) => void;
+  toggleAccountCourse: (course: Course) => void;
+  requestPasswordReset: (userId: string) => Promise<void>;
+  toggleManagedAccountStatus: (userId: string) => Promise<void>;
+  savePaymentRecord: (record: PaymentFormState) => Promise<string | null>;
   saveResource: (event: FormEvent<HTMLFormElement>) => void;
   exportResources: () => void;
   startEditingResource: (resource: TestResource) => void;
   removeResource: (resourceId: string) => void;
-  removeStudent: (userId: string) => void;
-  removeSelectedStudents: () => void;
+  removeManagedAccount: (userId: string) => Promise<void>;
+  removeSelectedAccounts: () => Promise<void>;
   clearResourceFilters: () => void;
+  clearAccountFilters: () => void;
   resetDemoData: () => void;
 };
+
+function formatPortalDate(dateValue?: string) {
+  if (!dateValue) return "01 Jul 2026";
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateValue;
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function getStatusMeta(status: AccountStatus) {
+  if (status === "active") {
+    return {
+      label: "Active",
+      className: portalStyles.studentStatusActive,
+    };
+  }
+
+  return {
+    label: "Suspended",
+    className: portalStyles.studentStatusDisabled,
+  };
+}
 
 export function usePortalState(): PortalController {
   const [state, setState] = useState<PortalState>(initialState);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [authInfo, setAuthInfo] = useState("");
   const [activeCourse, setActiveCourse] = useState<Course | "All">("All");
   const [activeResourceCategory, setActiveResourceCategory] = useState<ResourceType | "All">("All");
-  const [activeStudentCourse, setActiveStudentCourse] = useState<Course | "All">("All");
-  const [activeStudentStatus, setActiveStudentStatus] = useState<"All" | "Active" | "Disabled">("All");
-  const [studentSearch, setStudentSearch] = useState("");
   const [activeResourceStatus, setActiveResourceStatus] = useState<ResourceStatus | "All">("All");
   const [resourceSearch, setResourceSearch] = useState("");
-  const [activeAdminView, setActiveAdminView] = useState<AdminView>("overview");
-  const [loginRole, setLoginRole] = useState<PortalUser["role"]>("student");
-  const [studentForm, setStudentForm] = useState(emptyStudentForm);
-  const [resourceForm, setResourceForm] = useState(emptyResourceForm);
+  const [accountSearch, setAccountSearch] = useState("");
+  const [activeAccountCourse, setActiveAccountCourse] = useState<Course | "All">("All");
+  const [activeAccountStatus, setActiveAccountStatus] = useState<"All" | AccountStatus>("All");
+  const [activeAccountRole, setActiveAccountRole] = useState<AccountRoleFilter>("All");
+  const [adminView, setAdminView] = useState<AdminWorkspaceView>("overview");
+  const [teacherView, setTeacherView] = useState<TeacherWorkspaceView>("overview");
+  const [studentView, setStudentView] = useState<StudentWorkspaceView>("dashboard");
+  const [accountForm, setAccountForm] = useState<AccountFormState>(getEmptyAccountForm());
+  const [accountDialogMode, setAccountDialogMode] = useState<AccountDialogMode>(null);
+  const [accountDialogError, setAccountDialogError] = useState("");
+  const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
+  const [credentialNotice, setCredentialNotice] = useState<ResetPasswordResult | null>(null);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [resourceForm, setResourceForm] = useState<ResourceFormState>(emptyResourceForm);
+  const [resourceDialogError, setResourceDialogError] = useState("");
   const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
   const [isResourceDialogOpen, setIsResourceDialogOpen] = useState(false);
-  const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
-  const [editStudentForm, setEditStudentForm] = useState(emptyStudentForm);
-  const [isAddStudentDialogOpen, setIsAddStudentDialogOpen] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [resourceSorting, setResourceSorting] = useState<SortingState>([]);
-  const [studentSorting, setStudentSorting] = useState<SortingState>([]);
+  const [accountSorting, setAccountSorting] = useState<SortingState>([]);
   const [resourcePagination, setResourcePagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 5,
   });
-  const [studentPagination, setStudentPagination] = useState<PaginationState>({
+  const [accountPagination, setAccountPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 6,
   });
-  const [studentRowSelection, setStudentRowSelection] = useState<RowSelectionState>({});
+  const [accountRowSelection, setAccountRowSelection] = useState<RowSelectionState>({});
 
   useEffect(() => {
     const nextState = loadPortalState();
@@ -175,12 +237,31 @@ export function usePortalState(): PortalController {
     () => state.users.find((user) => user.id === currentUserId) ?? null,
     [currentUserId, state.users],
   );
-  const selectedStudent = useMemo(
-    () => state.users.find((user) => user.id === selectedStudentId && user.role === "student"),
-    [selectedStudentId, state.users],
+  const currentCredential = useMemo(
+    () => state.credentials.find((credential) => credential.userId === currentUserId) ?? null,
+    [currentUserId, state.credentials],
+  );
+  const authView: AuthView = currentUser && currentCredential?.mustChangePassword ? "password-reset" : "login";
+  const selectedAccount = useMemo(
+    () => state.users.find((user) => user.id === selectedAccountId && user.role !== "admin"),
+    [selectedAccountId, state.users],
+  );
+
+  const teacherUsers = useMemo(
+    () => state.users.filter((user) => user.role === "teacher"),
+    [state.users],
+  );
+  const studentUsers = useMemo(
+    () => state.users.filter((user) => user.role === "student"),
+    [state.users],
+  );
+  const managedAccounts = useMemo(
+    () => state.users.filter((user) => user.role !== "admin"),
+    [state.users],
   );
 
   const visibleCourses = currentUser?.role === "admin" ? COURSES : currentUser?.courses ?? [];
+  const hasCourseAccess = currentUser?.role === "admin" || visibleCourses.length > 0;
 
   const visibleResources = useMemo(() => {
     if (!currentUser) return [];
@@ -188,34 +269,39 @@ export function usePortalState(): PortalController {
     const courseAccess = currentUser.role === "admin" ? COURSES : currentUser.courses;
 
     return state.resources.filter((resource) => {
-      const hasCourseAccess = courseAccess.includes(resource.course);
-      const matchesActiveCourse = activeCourse === "All" || resource.course === activeCourse;
+      const hasCourseMatch = courseAccess.includes(resource.course);
+      const matchesCourseFilter = activeCourse === "All" || resource.course === activeCourse;
 
-      return hasCourseAccess && matchesActiveCourse;
+      return hasCourseMatch && matchesCourseFilter;
     });
   }, [activeCourse, currentUser, state.resources]);
 
-  const studentUsers = useMemo(
-    () => state.users.filter((user) => user.role === "student"),
-    [state.users],
-  );
+  const teacherStudentUsers = useMemo(() => {
+    if (currentUser?.role !== "teacher") {
+      return studentUsers;
+    }
 
-  const filteredStudentRows = useMemo(() => {
-    const query = studentSearch.trim().toLowerCase();
+    return studentUsers.filter((student) =>
+      student.courses.some((course) => currentUser.courses.includes(course)),
+    );
+  }, [currentUser, studentUsers]);
 
-    return studentUsers.filter((student) => {
-      const status = student.courses.length > 0 ? "Active" : "Disabled";
-      const matchesCourse = activeStudentCourse === "All" || student.courses.includes(activeStudentCourse);
-      const matchesStatus = activeStudentStatus === "All" || status === activeStudentStatus;
+  const filteredAccountRows = useMemo(() => {
+    const query = accountSearch.trim().toLowerCase();
+
+    return managedAccounts.filter((account) => {
+      const matchesRole = activeAccountRole === "All" || account.role === activeAccountRole;
+      const matchesStatus = activeAccountStatus === "All" || account.accountStatus === activeAccountStatus;
+      const matchesCourse = activeAccountCourse === "All" || account.courses.includes(activeAccountCourse);
       const matchesSearch =
         !query ||
-        student.name.toLowerCase().includes(query) ||
-        student.email.toLowerCase().includes(query) ||
-        student.courses.join(" ").toLowerCase().includes(query);
+        account.name.toLowerCase().includes(query) ||
+        account.email.toLowerCase().includes(query) ||
+        account.courses.join(" ").toLowerCase().includes(query);
 
-      return matchesCourse && matchesStatus && matchesSearch;
+      return matchesRole && matchesStatus && matchesCourse && matchesSearch;
     });
-  }, [activeStudentCourse, activeStudentStatus, studentSearch, studentUsers]);
+  }, [accountSearch, activeAccountCourse, activeAccountRole, activeAccountStatus, managedAccounts]);
 
   const courseSummaries = useMemo(
     () =>
@@ -228,15 +314,6 @@ export function usePortalState(): PortalController {
   );
 
   const latestResource = state.resources[0];
-
-  const groupedResources = useMemo(
-    () =>
-      CATEGORIES.map((category) => ({
-        category,
-        resources: visibleResources.filter((resource) => resource.category === category),
-      })),
-    [visibleResources],
-  );
 
   const filteredResourceRows = useMemo(() => {
     const query = resourceSearch.trim().toLowerCase();
@@ -259,248 +336,64 @@ export function usePortalState(): PortalController {
     });
   }, [activeResourceCategory, activeResourceStatus, resourceSearch, visibleResources]);
 
-  const selectedStudentIds = useMemo(
-    () => Object.keys(studentRowSelection).filter((id) => studentRowSelection[id]),
-    [studentRowSelection],
+  const selectedAccountIds = useMemo(
+    () => Object.keys(accountRowSelection).filter((id) => accountRowSelection[id]),
+    [accountRowSelection],
   );
-  const canManageStudents = currentUser?.role === "admin";
 
-  function getResourceTypeMeta(category: ResourceType) {
-    if (category === "Live Test") {
-      return { className: portalStyles.resourceTypeLive, Icon: Link2 };
-    }
-    if (category === "Previous Test") {
-      return { className: portalStyles.resourceTypePrevious, Icon: FileText };
-    }
-    if (category === "Study Material") {
-      return { className: portalStyles.resourceTypeStudy, Icon: BookOpen };
-    }
-    return { className: portalStyles.resourceTypeRevision, Icon: BookOpenCheck };
+  function updateState(nextState: PortalState) {
+    setState(nextState);
+    savePortalState(nextState);
   }
 
-  function formatPortalDate(dateValue?: string) {
-    if (!dateValue) return "01 Jul 2026";
-    const date = new Date(`${dateValue}T00:00:00`);
-    if (Number.isNaN(date.getTime())) return dateValue;
-    return new Intl.DateTimeFormat("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).format(date);
-  }
-
-  function summarizePaymentRecords(records: Array<{ amount: number; date: string; status: "Paid" | "Pending" | "Refunded" }>) {
-    const total = records.reduce((sum, record) => sum + record.amount, 0);
-    const paid = records.filter((record) => record.status === "Paid").reduce((sum, record) => sum + record.amount, 0);
-    const pending = records.filter((record) => record.status === "Pending").reduce((sum, record) => sum + record.amount, 0);
-    const refunded = records.filter((record) => record.status === "Refunded").reduce((sum, record) => sum + record.amount, 0);
-    const nextDue = records
-      .filter((record) => record.status === "Pending")
-      .sort((left, right) => left.date.localeCompare(right.date))[0]?.date;
-
-    return {
-      total,
-      paid,
-      due: pending,
-      refunded,
-      nextDue,
-    };
-  }
-
-  function openStudentDetails(student: PortalUser) {
-    setSelectedStudentId(student.id);
-    setActiveAdminView("students");
-  }
-
-  function closeStudentDetails() {
-    setSelectedStudentId(null);
-  }
-
-  function savePaymentRecord(record: PaymentFormState) {
-    if (!record.studentId) return;
-
-    const amount = Number(record.amount);
-    if (!Number.isFinite(amount) || amount <= 0) return;
-
-    updateState((current) => ({
-      ...current,
-      users: current.users.map((user) => {
-        if (user.id !== record.studentId || user.role !== "student") return user;
-
-        const currentRecords = user.payments?.records ?? [];
-        const nextRecords = [
-          {
-            id: createId("payment"),
-            label: record.label.trim(),
-            amount,
-            date: record.date,
-            method: record.method,
-            invoice: record.invoice.trim() || `INV-${createId("inv").slice(-4)}`,
-            status: record.status,
-          },
-          ...currentRecords,
-        ];
-        const summary = summarizePaymentRecords(nextRecords);
-
-        return {
-          ...user,
-          payments: {
-            total: summary.total,
-            paid: summary.paid,
-            due: summary.due,
-            refunded: summary.refunded,
-            nextDue: summary.nextDue,
-            records: nextRecords,
-          },
-        };
-      }),
-    }));
-  }
-
-  function updateState(updater: (current: PortalState) => PortalState) {
-    setState((current) => {
-      const nextState = updater(current);
-      savePortalState(nextState);
-      return nextState;
-    });
-  }
-
-  function handleLogin(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const user = state.users.find(
-      (candidate) =>
-        candidate.email.toLowerCase() === email.trim().toLowerCase() &&        candidate.password === password,
-    );
-
-    if (!user) {
-      setError("Check your email and password, then try again.");
-      return;
-    }
-
-    window.localStorage.setItem(SESSION_KEY, user.id);
-    setCurrentUserId(user.id);
-    setLoginRole(user.role);
-    setActiveCourse("All");
-    setActiveResourceCategory("All");
-    setActiveResourceStatus("All");
-    setResourceSearch("");
-    closeStudentDetails();
-    setError("");
+  function clearAuthFields() {
     setEmail("");
     setPassword("");
+    setAuthError("");
   }
 
-  function logout() {
-    window.localStorage.removeItem(SESSION_KEY);
-    setCurrentUserId(null);
-    setActiveCourse("All");
-    setActiveResourceCategory("All");
-    setActiveResourceStatus("All");
-    setResourceSearch("");
-    closeStudentDetails();
-    setStudentRowSelection({});
-    closeResourceDialog();
+  function openCreateAccount(role: "student" | "teacher" = "student") {
+    setAccountForm(getEmptyAccountForm(role));
+    setEditingAccountId(null);
+    setAccountDialogMode("create");
+    setAccountDialogError("");
   }
 
-  function clearResourceFilters() {
-    setActiveCourse("All");
-    setActiveResourceCategory("All");
-    setActiveResourceStatus("All");
-    setResourceSearch("");
-    setResourcePagination((current) => ({ ...current, pageIndex: 0 }));
+  function openEditAccount(account: PortalUser) {
+    if (account.role === "admin") return;
+    setAccountForm(getAccountFormFromUser(account));
+    setEditingAccountId(account.id);
+    setAccountDialogMode("edit");
+    setAccountDialogError("");
   }
 
-  function toggleStudentCourse(course: Course) {
-    setStudentForm((current) => {
-      const hasCourse = current.courses.includes(course);
-      const nextCourses = hasCourse
-        ? current.courses.filter((candidate) => candidate !== course)
-        : [...current.courses, course];
-
-      return {
-        ...current,
-        courses: nextCourses.length > 0 ? nextCourses : current.courses,
-      };
-    });
+  function closeAccountDialog() {
+    setAccountDialogMode(null);
+    setEditingAccountId(null);
+    setAccountDialogError("");
+    setAccountForm(getEmptyAccountForm());
   }
 
-  function toggleEditStudentCourse(course: Course) {
-    setEditStudentForm((current) => {
-      const hasCourse = current.courses.includes(course);
-      const nextCourses = hasCourse
-        ? current.courses.filter((candidate) => candidate !== course)
-        : [...current.courses, course];
-
-      return {
-        ...current,
-        courses: nextCourses.length > 0 ? nextCourses : current.courses,
-      };
-    });
+  function dismissCredentialNotice() {
+    setCredentialNotice(null);
   }
 
-  function startEditingStudent(student: PortalUser) {
-    setEditingStudentId(student.id);
-    setEditStudentForm({
-      name: student.name,
-      email: student.email,
-      password: student.password,
-      courses: student.courses,
-    });
+  function openAccountDetails(account: PortalUser) {
+    setSelectedAccountId(account.id);
+    if (currentUser?.role === "teacher") {
+      setTeacherView("students");
+    } else {
+      setAdminView("accounts");
+    }
   }
 
-  function cancelEditingStudent() {
-    setEditingStudentId(null);
-    setEditStudentForm(emptyStudentForm);
-  }
-
-  function saveStudentEdit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!editingStudentId) return;
-
-    updateState((current) => ({
-      ...current,
-      users: current.users.map((user) =>
-        user.id === editingStudentId
-          ? {
-              ...user,
-              name: editStudentForm.name.trim(),
-              email: editStudentForm.email.trim(),
-              password: editStudentForm.password,
-              courses: editStudentForm.courses,
-            }
-          : user,
-      ),
-    }));
-    cancelEditingStudent();
-  }
-
-  function addStudent(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    updateState((current) => ({
-      ...current,
-      users: [
-        ...current.users,
-        {
-          id: createId("student"),
-          role: "student",
-          name: studentForm.name.trim(),
-          email: studentForm.email.trim(),
-          password: studentForm.password,
-          courses: studentForm.courses,
-          joinedOn: new Date().toISOString().slice(0, 10),
-        },
-      ],
-    }));
-    setStudentForm(emptyStudentForm);
-    setStudentRowSelection({});
-    setStudentPagination((current) => ({ ...current, pageIndex: 0 }));
-    setActiveAdminView("students");
-    setIsAddStudentDialogOpen(false);
+  function closeAccountDetails() {
+    setSelectedAccountId(null);
   }
 
   function openResourceDialog(resource?: TestResource) {
+    setResourceDialogError("");
+
     if (resource) {
       setEditingResourceId(resource.id);
       setResourceForm({
@@ -515,7 +408,10 @@ export function usePortalState(): PortalController {
       });
     } else {
       setEditingResourceId(null);
-      setResourceForm(emptyResourceForm);
+      setResourceForm({
+        ...emptyResourceForm,
+        course: visibleCourses[0] ?? emptyResourceForm.course,
+      });
     }
 
     setIsResourceDialogOpen(true);
@@ -524,63 +420,304 @@ export function usePortalState(): PortalController {
   function closeResourceDialog() {
     setIsResourceDialogOpen(false);
     setEditingResourceId(null);
-    setResourceForm(emptyResourceForm);
+    setResourceDialogError("");
+    setResourceForm({
+      ...emptyResourceForm,
+      course: visibleCourses[0] ?? emptyResourceForm.course,
+    });
+  }
+
+  function toggleAccountCourse(course: Course) {
+    setAccountForm((current) => {
+      const hasCourse = current.courses.includes(course);
+      const nextCourses = hasCourse
+        ? current.courses.filter((candidate) => candidate !== course)
+        : [...current.courses, course];
+
+      return {
+        ...current,
+        courses: nextCourses,
+      };
+    });
+  }
+
+  async function handlePasswordSetup(nextPassword: string, confirmPassword: string) {
+    if (!currentUser) {
+      return "No active account is available for password setup.";
+    }
+
+    if (nextPassword !== confirmPassword) {
+      return "The new password and confirmation do not match.";
+    }
+
+    const result = await changeOwnPassword(
+      state,
+      currentUser.id,
+      { nextPassword },
+      false,
+    );
+
+    if (!result.ok) {
+      return result.error;
+    }
+
+    updateState(result.data);
+    setAuthInfo("Password updated. Your account is ready to use.");
+    setPassword("");
+    return null;
+  }
+
+  async function saveOwnPassword(input: ChangeOwnPasswordInput, confirmPassword: string) {
+    if (!currentUser) {
+      return "No active account is available.";
+    }
+
+    if (input.nextPassword !== confirmPassword) {
+      return "The new password and confirmation do not match.";
+    }
+
+    const result = await changeOwnPassword(state, currentUser.id, input, true);
+
+    if (!result.ok) {
+      return result.error;
+    }
+
+    updateState(result.data);
+    return null;
+  }
+
+  async function saveOwnProfile(input: UpdateOwnProfileInput) {
+    if (!currentUser) {
+      return "No active account is available.";
+    }
+
+    const result = await updateOwnProfile(state, currentUser.id, input);
+
+    if (!result.ok) {
+      return result.error;
+    }
+
+    updateState(result.data);
+    return null;
+  }
+
+  function handleLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    void (async () => {
+      const result = await signIn(state, email, password);
+
+      if (!result.ok) {
+        setAuthError(result.error);
+        return;
+      }
+
+      window.localStorage.setItem(SESSION_KEY, result.data.userId);
+      setCurrentUserId(result.data.userId);
+      setAdminView("overview");
+      setTeacherView("overview");
+      setStudentView("dashboard");
+      setActiveCourse("All");
+      setActiveResourceCategory("All");
+      setActiveResourceStatus("All");
+      setResourceSearch("");
+      setAccountSearch("");
+      setActiveAccountCourse("All");
+      setActiveAccountStatus("All");
+      setActiveAccountRole("All");
+      setAccountRowSelection({});
+      closeAccountDetails();
+      setAuthInfo(result.data.mustChangePassword ? "Set a new password before continuing." : "");
+      clearAuthFields();
+    })();
+  }
+
+  function logout() {
+    window.localStorage.removeItem(SESSION_KEY);
+    setCurrentUserId(null);
+    setAuthInfo("");
+    clearAuthFields();
+    setActiveCourse("All");
+    setActiveResourceCategory("All");
+    setActiveResourceStatus("All");
+    setResourceSearch("");
+    clearAccountFilters();
+    closeAccountDetails();
+    closeAccountDialog();
+    closeResourceDialog();
+    setAccountRowSelection({});
+  }
+
+  function clearResourceFilters() {
+    setActiveCourse("All");
+    setActiveResourceCategory("All");
+    setActiveResourceStatus("All");
+    setResourceSearch("");
+    setResourcePagination((current) => ({ ...current, pageIndex: 0 }));
+  }
+
+  function clearAccountFilters() {
+    setAccountSearch("");
+    setActiveAccountCourse("All");
+    setActiveAccountStatus("All");
+    setActiveAccountRole("All");
+    setAccountPagination((current) => ({ ...current, pageIndex: 0 }));
+  }
+
+  function saveAccount(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    void (async () => {
+      if (accountDialogMode === "create") {
+        const result = await createAccount(state, accountForm);
+
+        if (!result.ok) {
+          setAccountDialogError(result.error);
+          return;
+        }
+
+        updateState(result.data.state);
+        setCredentialNotice(result.data.result);
+        closeAccountDialog();
+        setAdminView("accounts");
+        return;
+      }
+
+      if (!editingAccountId) {
+        setAccountDialogError("Choose an account to edit.");
+        return;
+      }
+
+      const result = await updateAccount(state, editingAccountId, accountForm);
+
+      if (!result.ok) {
+        setAccountDialogError(result.error);
+        return;
+      }
+
+      updateState(result.data);
+      closeAccountDialog();
+    })();
+  }
+
+  async function requestPasswordReset(userId: string) {
+    const result = await resetAccountPassword(state, userId);
+
+    if (!result.ok) {
+      setAccountDialogError(result.error);
+      return;
+    }
+
+    updateState(result.data.state);
+    setCredentialNotice(result.data.result);
+  }
+
+  async function toggleManagedAccountStatus(userId: string) {
+    const result = await toggleAccountStatus(state, userId);
+
+    if (!result.ok) {
+      setAccountDialogError(result.error);
+      return;
+    }
+
+    updateState(result.data);
+
+    if (userId === currentUserId) {
+      logout();
+    }
+  }
+
+  async function removeManagedAccount(userId: string) {
+    const result = await removeAccount(state, userId);
+
+    if (!result.ok) {
+      setAccountDialogError(result.error);
+      return;
+    }
+
+    updateState(result.data);
+    setAccountRowSelection((current) => {
+      const next = { ...current };
+      delete next[userId];
+      return next;
+    });
+
+    if (selectedAccountId === userId) {
+      closeAccountDetails();
+    }
+  }
+
+  async function removeSelectedAccounts() {
+    for (const userId of selectedAccountIds) {
+      await removeManagedAccount(userId);
+    }
+
+    setAccountRowSelection({});
+  }
+
+  async function savePaymentRecord(record: PaymentFormState) {
+    const result = await createPaymentRecord(state, record);
+
+    if (!result.ok) {
+      return result.error;
+    }
+
+    updateState(result.data);
+    return null;
   }
 
   function saveResource(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    updateState((current) => ({
-      ...current,
-      resources:
-        editingResourceId === null
-          ? [
-              {
-                id: createId("resource"),
-                addedOn: new Date().toISOString().slice(0, 10),
-                title: resourceForm.title.trim(),
-                course: resourceForm.course,
-                category: resourceForm.category,
-                status: resourceForm.status,
-                url: resourceForm.url.trim(),
-                answerUrl: resourceForm.answerUrl.trim() || undefined,
-                answerReleaseStatus: resourceForm.answerUrl.trim()
-                  ? resourceForm.answerReleaseStatus
-                  : "Hidden",
-                description: resourceForm.description.trim(),
-              },
-              ...current.resources,
-            ]
-          : current.resources.map((resource) =>
-              resource.id === editingResourceId
-                ? {
-                    ...resource,
-                    title: resourceForm.title.trim(),
-                    course: resourceForm.course,
-                    category: resourceForm.category,
-                    status: resourceForm.status,
-                    url: resourceForm.url.trim(),
-                    answerUrl: resourceForm.answerUrl.trim() || undefined,
-                    answerReleaseStatus: resourceForm.answerUrl.trim()
-                      ? resourceForm.answerReleaseStatus
-                      : "Hidden",
-                    description: resourceForm.description.trim(),
-                  }
-                : resource,
-            ),
-    }));
-    closeResourceDialog();
-    setResourcePagination((current) => ({ ...current, pageIndex: 0 }));
-    setActiveAdminView("library");
+    void (async () => {
+      if (currentUser?.role === "teacher" && !currentUser.courses.includes(resourceForm.course)) {
+        setResourceDialogError("Teachers can only manage resources for their assigned courses.");
+        return;
+      }
+
+      const result = await saveResourceRecord(state, resourceForm, editingResourceId);
+
+      if (!result.ok) {
+        setResourceDialogError(result.error);
+        return;
+      }
+
+      updateState(result.data);
+      closeResourceDialog();
+      setResourcePagination((current) => ({ ...current, pageIndex: 0 }));
+      if (currentUser?.role === "teacher") {
+        setTeacherView("resources");
+      } else {
+        setAdminView("library");
+      }
+    })();
   }
 
   function startEditingResource(resource: TestResource) {
     openResourceDialog(resource);
-    setActiveAdminView("library");
+    if (currentUser?.role === "teacher") {
+      setTeacherView("resources");
+    } else {
+      setAdminView("library");
+    }
+  }
+
+  function removeResource(resourceId: string) {
+    const target = state.resources.find((resource) => resource.id === resourceId);
+    if (!target) return;
+
+    if (currentUser?.role === "teacher" && !currentUser.courses.includes(target.course)) {
+      return;
+    }
+
+    updateState({
+      ...state,
+      resources: state.resources.filter((resource) => resource.id !== resourceId),
+    });
   }
 
   function exportResources() {
-    const headers = ["Title", "Course", "Type", "URL", "Answer URL", "Description", "Added On"];
+    const headers = ["Title", "Course", "Type", "Status", "URL", "Answer URL", "Answer Visibility", "Description", "Added On"];
     const rows = filteredResourceRows.map((resource) => [
       resource.title,
       resource.course,
@@ -588,6 +725,7 @@ export function usePortalState(): PortalController {
       resource.status,
       resource.url,
       resource.answerUrl ?? "",
+      resource.answerReleaseStatus,
       resource.description,
       resource.addedOn,
     ]);
@@ -605,69 +743,29 @@ export function usePortalState(): PortalController {
     URL.revokeObjectURL(url);
   }
 
-  function removeResource(resourceId: string) {
-    updateState((current) => ({
-      ...current,
-      resources: current.resources.filter((resource) => resource.id !== resourceId),
-    }));
-  }
-
-  function removeStudent(userId: string) {
-    updateState((current) => ({
-      ...current,
-      users: current.users.filter((user) => user.id !== userId),
-    }));
-    setStudentRowSelection((current) => {
-      const next = { ...current };
-      delete next[userId];
-      return next;
-    });
-    if (editingStudentId === userId) {
-      cancelEditingStudent();
-    }
-    if (selectedStudentId === userId) {
-      closeStudentDetails();
-    }
-  }
-
-  function removeSelectedStudents() {
-    updateState((current) => ({
-      ...current,
-      users: current.users.filter((user) => !selectedStudentIds.includes(user.id)),
-    }));
-    if (editingStudentId && selectedStudentIds.includes(editingStudentId)) {
-      cancelEditingStudent();
-    }
-    setStudentRowSelection({});
-  }
-
   function resetDemoData() {
     savePortalState(initialState);
     window.localStorage.removeItem(SESSION_KEY);
     setState(initialState);
     setCurrentUserId(null);
-    setActiveCourse("All");
-    setActiveResourceCategory("All");
-    setActiveResourceStatus("All");
-    setResourceSearch("");
-    setStudentRowSelection({});
-    setIsAddStudentDialogOpen(false);
-    closeStudentDetails();
+    setAuthInfo("");
+    clearAuthFields();
+    clearResourceFilters();
+    clearAccountFilters();
+    closeAccountDetails();
+    closeAccountDialog();
     closeResourceDialog();
-    cancelEditingStudent();
+    setCredentialNotice(null);
+    setAccountRowSelection({});
   }
 
   useEffect(() => {
-    setResourcePagination((current) =>
-      current.pageIndex === 0 ? current : { ...current, pageIndex: 0 },
-    );
+    setResourcePagination((current) => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }));
   }, [resourceSearch, activeCourse, activeResourceCategory, activeResourceStatus]);
 
   useEffect(() => {
-    setStudentPagination((current) =>
-      current.pageIndex === 0 ? current : { ...current, pageIndex: 0 },
-    );
-  }, [studentSearch, activeStudentCourse, activeStudentStatus]);
+    setAccountPagination((current) => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }));
+  }, [accountSearch, activeAccountCourse, activeAccountStatus, activeAccountRole]);
 
   useEffect(() => {
     setResourcePagination((current) => {
@@ -677,11 +775,11 @@ export function usePortalState(): PortalController {
   }, [filteredResourceRows.length]);
 
   useEffect(() => {
-    setStudentPagination((current) => {
-      const maxPage = Math.max(0, Math.ceil(filteredStudentRows.length / current.pageSize) - 1);
+    setAccountPagination((current) => {
+      const maxPage = Math.max(0, Math.ceil(filteredAccountRows.length / current.pageSize) - 1);
       return current.pageIndex > maxPage ? { ...current, pageIndex: maxPage } : current;
     });
-  }, [filteredStudentRows.length]);
+  }, [filteredAccountRows.length]);
 
   const resourceColumns = useMemo<ColumnDef<TestResource>[]>(
     () => [
@@ -694,8 +792,11 @@ export function usePortalState(): PortalController {
           <div className={portalStyles.resourceTitleCell}>
             <strong>{row.original.title}</strong>
             <span>{row.original.description}</span>
-            <small>{row.original.url}</small>
-            {row.original.answerUrl ? <small className={portalStyles.resourceAnswerText}>Answer link added</small> : null}
+            {row.original.answerUrl ? (
+              <small className={portalStyles.resourceAnswerText}>
+                {row.original.answerReleaseStatus === "Published" ? "Answer link published" : "Answer link hidden"}
+              </small>
+            ) : null}
           </div>
         ),
       },
@@ -704,93 +805,115 @@ export function usePortalState(): PortalController {
         header: ({ column }) => (
           <SortHeader title="Course" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
         ),
-        cell: ({ row }) => <Badge variant="secondary">{row.original.course}</Badge>,
+        cell: ({ row }) => (
+          <Badge className="inline-flex min-h-[28px] w-fit items-center rounded-full bg-[#e9fbf5] px-2.5 py-1 text-[0.72rem] font-black leading-none text-[#087365]">
+            {row.original.course}
+          </Badge>
+        ),
       },
       {
         accessorKey: "category",
         header: ({ column }) => (
           <SortHeader title="Type" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
         ),
-        cell: ({ row }) => {
-          const { className, Icon } = getResourceTypeMeta(row.original.category);
-
-          return (
-            <span className={cn(portalStyles.resourceTypeChip, className)}>
-              <Icon aria-hidden="true" className="h-3.5 w-3.5" />
-              {row.original.category}
-            </span>
-          );
-        },
+        cell: ({ row }) => (
+          <span className="inline-flex min-h-[28px] w-fit items-center rounded-full border border-[#e1ecea] bg-[#fbfefd] px-2.5 py-1 text-[0.72rem] font-black leading-none text-[#5f7378]">
+            {row.original.category}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <SortHeader title="Status" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
+        ),
+        cell: ({ row }) => (
+          <span
+            className={cn(
+              portalStyles.resourceStatusBadge,
+              row.original.status === "Live"
+                ? portalStyles.resourceStatusLive
+                : row.original.status === "Archived"
+                  ? portalStyles.resourceStatusArchived
+                  : portalStyles.resourceStatusUpcoming,
+            )}
+          >
+            {row.original.status}
+          </span>
+        ),
       },
       {
         accessorKey: "addedOn",
         header: ({ column }) => (
           <SortHeader title="Added On" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
         ),
+        cell: ({ row }) => formatPortalDate(row.original.addedOn),
       },
-
       {
         id: "actions",
         enableSorting: false,
         header: () => <SortHeader title="Actions" />,
-        cell: ({ row }) => (
-          <div className={portalStyles.tableActions}>
-            <Button
-              type="button"
-              variant="secondary"
-              size="icon-sm"
-              aria-label="Open link preview"
-              onClick={() => window.open(row.original.url, "_blank", "noreferrer")}
-              icon={<Link2 aria-hidden="true" />}
-            />
+        cell: ({ row }) => {
+          const canManage = currentUser?.role === "admin" || (currentUser?.role === "teacher" && currentUser.courses.includes(row.original.course));
 
-            <Button
-              type="button"
-              variant="secondary"
-              size="icon-sm"
-              aria-label="Edit resource"
-              onClick={() => startEditingResource(row.original)}
-              icon={<Pencil aria-hidden="true" />}
-            />
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon-sm"
-              aria-label="Remove resource"
-              onClick={() => removeResource(row.original.id)}
-              icon={<Trash2 aria-hidden="true" />}
-            />
-          </div>
-        ),
+          return (
+            <div className={portalStyles.tableActions}>
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                aria-label="Open resource link"
+                onClick={() => window.open(row.original.url, "_blank", "noreferrer")}
+                icon={<Link2 aria-hidden="true" />}
+              />
+              {canManage ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon-sm"
+                    aria-label="Edit resource"
+                    onClick={() => startEditingResource(row.original)}
+                    icon={<Pencil aria-hidden="true" />}
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon-sm"
+                    aria-label="Remove resource"
+                    onClick={() => removeResource(row.original.id)}
+                    icon={<Trash2 aria-hidden="true" />}
+                  />
+                </>
+              ) : null}
+            </div>
+          );
+        },
       },
     ],
-    [removeResource, startEditingResource],
+    [currentUser, removeResource, startEditingResource],
   );
 
-  const studentColumns = useMemo<ColumnDef<PortalUser>[]>(
+  const accountColumns = useMemo<ColumnDef<PortalUser>[]>(
     () => [
-      ...(canManageStudents
-        ? [
-            {
-              id: "select",
-              enableSorting: false,
-              header: ({ table }: { table: TanstackTable<PortalUser> }) => (
-                <Checkbox
-                  checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-                  onCheckedChange={(value) => table.toggleAllPageRowsSelected(Boolean(value))}
-                  aria-label="Select all students"
-                />
-              ),
-              cell: ({ row }: { row: any }) => (
-                <Checkbox
-                  checked={row.getIsSelected()}
-                  onCheckedChange={(value) => row.toggleSelected(Boolean(value))}
-                  aria-label={`Select ${row.original.name}`}
-                />
-              ),
-            } as ColumnDef<PortalUser>,
-          ]
-        : []),
+      {
+        id: "select",
+        enableSorting: false,
+        header: ({ table }: { table: TanstackTable<PortalUser> }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(Boolean(value))}
+            aria-label="Select all accounts"
+          />
+        ),
+        cell: ({ row }: { row: any }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(Boolean(value))}
+            aria-label={`Select ${row.original.name}`}
+          />
+        ),
+      } as ColumnDef<PortalUser>,
       {
         accessorKey: "name",
         header: ({ column }) => (
@@ -805,6 +928,15 @@ export function usePortalState(): PortalController {
         ),
       },
       {
+        accessorKey: "role",
+        header: ({ column }) => (
+          <SortHeader title="Role" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
+        ),
+        cell: ({ row }) => (
+          <Badge variant="outline">{row.original.role}</Badge>
+        ),
+      },
+      {
         id: "courses",
         accessorFn: (row) => row.courses.join(", "),
         header: ({ column }) => (
@@ -812,31 +944,18 @@ export function usePortalState(): PortalController {
         ),
         cell: ({ row }) => (
           <div className={portalStyles.coursePills}>
-            {row.original.courses.map((course) => (
-              <Badge key={course}>{course}</Badge>
-            ))}
+            {row.original.courses.length ? row.original.courses.map((course) => <Badge key={course}>{course}</Badge>) : <span>No courses</span>}
           </div>
         ),
       },
       {
-        id: "status",
-        accessorFn: (row) => (row.courses.length > 0 ? "Active" : "Disabled"),
+        accessorKey: "accountStatus",
         header: ({ column }) => (
           <SortHeader title="Status" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} />
         ),
         cell: ({ row }) => {
-          const status = row.original.courses.length > 0 ? "Active" : "Disabled";
-
-          return (
-            <span
-              className={cn(
-                portalStyles.studentStatusBadge,
-                status === "Active" ? portalStyles.studentStatusActive : portalStyles.studentStatusDisabled,
-              )}
-            >
-              {status}
-            </span>
-          );
+          const status = getStatusMeta(row.original.accountStatus);
+          return <span className={cn(portalStyles.studentStatusBadge, status.className)}>{status.label}</span>;
         },
       },
       {
@@ -850,41 +969,57 @@ export function usePortalState(): PortalController {
         id: "actions",
         enableSorting: false,
         header: () => <SortHeader title="Actions" />,
-        cell: ({ row }) => (
-          <div className={portalStyles.tableActions}>
-            <Button
-              type="button"
-              variant="secondary"
-              size="icon-sm"
-              aria-label="View student details"
-              onClick={() => openStudentDetails(row.original)}
-              icon={<Eye aria-hidden="true" />}
-            />
-            {canManageStudents ? (
-              <>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="icon-sm"
-                  aria-label="Edit student"
-                  onClick={() => startEditingStudent(row.original)}
-                  icon={<Pencil aria-hidden="true" />}
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon-sm"
-                  aria-label="Remove student"
-                  onClick={() => removeStudent(row.original.id)}
-                  icon={<Trash2 aria-hidden="true" />}
-                />
-              </>
-            ) : null}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const isSuspended = row.original.accountStatus === "suspended";
+
+          return (
+            <div className={portalStyles.tableActions}>
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                aria-label="View account details"
+                onClick={() => openAccountDetails(row.original)}
+                icon={<Eye aria-hidden="true" />}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                aria-label="Edit account"
+                onClick={() => openEditAccount(row.original)}
+                icon={<Pencil aria-hidden="true" />}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                aria-label="Reset password"
+                onClick={() => void requestPasswordReset(row.original.id)}
+                icon={<KeyRound aria-hidden="true" />}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-sm"
+                aria-label={isSuspended ? "Reactivate account" : "Suspend account"}
+                onClick={() => void toggleManagedAccountStatus(row.original.id)}
+                icon={isSuspended ? <ShieldCheck aria-hidden="true" /> : <Ban aria-hidden="true" />}
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon-sm"
+                aria-label="Delete account"
+                onClick={() => void removeManagedAccount(row.original.id)}
+                icon={<Trash2 aria-hidden="true" />}
+              />
+            </div>
+          );
+        },
       },
     ],
-    [canManageStudents, openStudentDetails, removeStudent, startEditingStudent],
+    [openAccountDetails, openEditAccount, removeManagedAccount, requestPasswordReset, toggleManagedAccountStatus],
   );
 
   const resourcesTable = useReactTable({
@@ -901,19 +1036,19 @@ export function usePortalState(): PortalController {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  const studentsTable = useReactTable({
-    data: filteredStudentRows,
-    columns: studentColumns,
+  const accountsTable = useReactTable({
+    data: filteredAccountRows,
+    columns: accountColumns,
     state: {
-      sorting: studentSorting,
-      pagination: studentPagination,
-      rowSelection: studentRowSelection,
+      sorting: accountSorting,
+      pagination: accountPagination,
+      rowSelection: accountRowSelection,
     },
     enableRowSelection: true,
     getRowId: (row) => row.id,
-    onSortingChange: setStudentSorting,
-    onPaginationChange: setStudentPagination,
-    onRowSelectionChange: setStudentRowSelection,
+    onSortingChange: setAccountSorting,
+    onPaginationChange: setAccountPagination,
+    onRowSelectionChange: setAccountRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -922,80 +1057,98 @@ export function usePortalState(): PortalController {
   return {
     state,
     currentUser,
+    authView,
     email,
     setEmail,
     password,
     setPassword,
-    error,
-    setError,
+    authError,
+    setAuthError,
+    authInfo,
+    setAuthInfo,
     activeCourse,
     setActiveCourse,
     activeResourceCategory,
     setActiveResourceCategory,
-    activeStudentCourse,
-    setActiveStudentCourse,
-    activeStudentStatus,
-    setActiveStudentStatus,
-    studentSearch,
-    setStudentSearch,
     activeResourceStatus,
     setActiveResourceStatus,
     resourceSearch,
     setResourceSearch,
-    activeAdminView,
-    setActiveAdminView,
-    loginRole,
-    setLoginRole,
-    studentForm,
-    setStudentForm,
+    accountSearch,
+    setAccountSearch,
+    activeAccountCourse,
+    setActiveAccountCourse,
+    activeAccountStatus,
+    setActiveAccountStatus,
+    activeAccountRole,
+    setActiveAccountRole,
+    adminView,
+    setAdminView,
+    teacherView,
+    setTeacherView,
+    studentView,
+    setStudentView,
+    accountForm,
+    setAccountForm,
+    accountDialogMode,
+    accountDialogError,
+    setAccountDialogError,
+    editingAccountId,
+    openCreateAccount,
+    openEditAccount,
+    closeAccountDialog,
+    credentialNotice,
+    dismissCredentialNotice,
+    selectedAccountId,
+    selectedAccount,
+    openAccountDetails,
+    closeAccountDetails,
     resourceForm,
     setResourceForm,
+    resourceDialogError,
+    setResourceDialogError,
     editingResourceId,
     isResourceDialogOpen,
     openResourceDialog,
     closeResourceDialog,
-    editingStudentId,
-    editStudentForm,
-    setEditStudentForm,
-    isAddStudentDialogOpen,
-    setIsAddStudentDialogOpen,
     resourcePagination,
     setResourcePagination,
-    studentPagination,
-    setStudentPagination,
-    studentRowSelection,
-    setStudentRowSelection,
+    accountPagination,
+    setAccountPagination,
+    accountRowSelection,
+    setAccountRowSelection,
     visibleCourses,
     visibleResources,
     studentUsers,
-    filteredStudentRows,
-    selectedStudentId,
-    selectedStudent,
+    teacherUsers,
+    teacherStudentUsers,
+    managedAccounts,
+    filteredAccountRows,
     courseSummaries,
     latestResource,
-    groupedResources,
     filteredResourceRows,
-    selectedStudentIds,
+    selectedAccountIds,
     resourcesTable,
-    studentsTable,
+    accountsTable,
+    hasCourseAccess,
     handleLogin,
     logout,
-    toggleStudentCourse,
-    toggleEditStudentCourse,
-    startEditingStudent,
-    cancelEditingStudent,
-    saveStudentEdit,
-    addStudent,
-    openStudentDetails,
-    closeStudentDetails,
+    handlePasswordSetup,
+    saveOwnPassword,
+    saveOwnProfile,
+    saveAccount,
+    toggleAccountCourse,
+    requestPasswordReset,
+    toggleManagedAccountStatus,
     savePaymentRecord,
     saveResource,
-    startEditingResource,
     exportResources,
+    startEditingResource,
     removeResource,
-    removeStudent,
-    removeSelectedStudents,
+    removeManagedAccount,
+    removeSelectedAccounts,
     clearResourceFilters,
+    clearAccountFilters,
     resetDemoData,
   };
 }

@@ -3,18 +3,11 @@ export type ResourceType = "Live Test" | "Previous Test" | "Revision Material" |
 export type ResourceStatus = "Upcoming" | "Live" | "Archived";
 export type AnswerReleaseStatus = "Hidden" | "Published";
 export type UserRole = "admin" | "teacher" | "student";
-export type AdminView =
-  | "overview"
-  | "library"
-  | "add-link"
-  | "students"
-  | "payments"
-  | "profile"
-  | "performance"
-  | "resources"
-  | "live-test"
-  | "create-test"
-  | "add-resource";
+export type AccountStatus = "active" | "suspended";
+
+export type AdminWorkspaceView = "overview" | "library" | "accounts" | "payments";
+export type TeacherWorkspaceView = "overview" | "resources" | "students" | "profile" | "security";
+export type StudentWorkspaceView = "dashboard" | "resources" | "live-tests" | "performance" | "payments" | "profile" | "security";
 
 export type StudentPerformance = {
   averageScore: number;
@@ -53,8 +46,8 @@ export type PortalUser = {
   id: string;
   name: string;
   email: string;
-  password: string;
   role: UserRole;
+  accountStatus: AccountStatus;
   courses: Course[];
   joinedOn?: string;
   phone?: string;
@@ -63,6 +56,13 @@ export type PortalUser = {
   performance?: StudentPerformance;
   scoreHistory?: StudentScore[];
   payments?: StudentPayments;
+};
+
+export type PortalCredential = {
+  userId: string;
+  password: string;
+  mustChangePassword: boolean;
+  passwordUpdatedOn: string;
 };
 
 export type TestResource = {
@@ -78,16 +78,26 @@ export type TestResource = {
   addedOn: string;
 };
 
-export type PortalState = {
-  users: PortalUser[];
-  resources: TestResource[];
+export type PortalCounters = {
+  invoice: number;
 };
 
-export type StudentFormState = {
+export type PortalState = {
+  users: PortalUser[];
+  credentials: PortalCredential[];
+  resources: TestResource[];
+  counters: PortalCounters;
+};
+
+export type AccountFormState = {
+  role: Exclude<UserRole, "admin">;
   name: string;
   email: string;
-  password: string;
   courses: Course[];
+  phone: string;
+  guardianName: string;
+  address: string;
+  accountStatus: AccountStatus;
 };
 
 export type PaymentFormState = {
@@ -97,7 +107,6 @@ export type PaymentFormState = {
   method: "UPI" | "Card" | "Cash" | "Bank Transfer" | "Other";
   date: string;
   status: "Paid" | "Pending" | "Refunded";
-  invoice: string;
 };
 
 export type ResourceFormState = {
@@ -109,4 +118,27 @@ export type ResourceFormState = {
   answerUrl: string;
   answerReleaseStatus: AnswerReleaseStatus;
   description: string;
+};
+
+export type CreateUserInput = AccountFormState;
+
+export type UpdateUserInput = AccountFormState;
+
+export type ResetPasswordResult = {
+  userId: string;
+  name: string;
+  email: string;
+  role: Exclude<UserRole, "admin">;
+  temporaryPassword: string;
+};
+
+export type UpdateOwnProfileInput = {
+  phone: string;
+  guardianName: string;
+  address: string;
+};
+
+export type ChangeOwnPasswordInput = {
+  currentPassword?: string;
+  nextPassword: string;
 };
