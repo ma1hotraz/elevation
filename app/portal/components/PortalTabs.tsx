@@ -7,7 +7,7 @@ type PortalTabsProps = ComponentProps<typeof Tabs> & {
 };
 
 function PortalTabs({ className, ...props }: PortalTabsProps) {
-  return <Tabs className={cn("grid gap-4", className)} {...props} />;
+  return <Tabs className={cn("grid gap-5", className)} {...props} />;
 }
 
 function PortalTabsList({
@@ -18,7 +18,7 @@ function PortalTabsList({
     <TabsList
       variant="line"
       className={cn(
-        "w-full justify-start rounded-[12px] border border-[rgba(8,47,43,0.08)] bg-white p-1",
+        "w-full justify-start gap-1.5 rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-[#fbfefd] p-1.5 shadow-[0_10px_28px_rgba(9,72,69,0.04)]",
         className,
       )}
       {...props}
@@ -33,7 +33,7 @@ function PortalTabsTrigger({
   return (
     <TabsTrigger
       className={cn(
-        "h-9 rounded-[10px] px-4 text-[0.88rem] font-black text-[#61767b] data-active:bg-[#e9fbf5] data-active:text-[#087365]",
+        "h-10 rounded-[11px] px-5 text-[0.92rem] font-black text-[#718287] data-active:bg-white data-active:text-[#0b7a67] data-active:shadow-[0_8px_20px_rgba(9,72,69,0.05)]",
         className,
       )}
       {...props}
