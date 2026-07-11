@@ -20,17 +20,17 @@ export function AdminPortalScreen({ portal }: AdminPortalScreenProps) {
         <AdminSidebar portal={portal} />
 
         <div className="min-w-0 px-6 py-6 sm:px-8 lg:px-10 xl:px-12">
-          {portal.activeAdminView === "overview" ? <AdminOverview portal={portal} /> : null}
-          {portal.activeAdminView === "library" || portal.activeAdminView === "add-link" ? (
+          {portal.adminView === "overview" ? <AdminOverview portal={portal} /> : null}
+          {portal.adminView === "library" ? (
             <ResourceLibraryPanel portal={portal} />
           ) : null}
-          {portal.activeAdminView === "students" && portal.selectedStudent ? (
+          {portal.adminView === "accounts" && portal.selectedAccount ? (
             <StudentDetailsPanel portal={portal} />
           ) : null}
-          {portal.activeAdminView === "students" && !portal.selectedStudent ? (
+          {portal.adminView === "accounts" && !portal.selectedAccount ? (
             <StudentManagementPanel portal={portal} />
           ) : null}
-          {portal.activeAdminView === "payments" ? <PaymentHistoryPanel portal={portal} /> : null}
+          {portal.adminView === "payments" ? <PaymentHistoryPanel portal={portal} /> : null}
         </div>
       </section>
 
@@ -39,3 +39,4 @@ export function AdminPortalScreen({ portal }: AdminPortalScreenProps) {
     </main>
   );
 }
+
