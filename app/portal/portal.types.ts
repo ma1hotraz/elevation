@@ -5,7 +5,7 @@ export type AnswerReleaseStatus = "Hidden" | "Published";
 export type UserRole = "admin" | "teacher" | "student";
 export type AccountStatus = "active" | "suspended";
 
-export type AdminWorkspaceView = "overview" | "library" | "accounts" | "payments";
+export type AdminWorkspaceView = "overview" | "library" | "accounts" | "payments" | "enquiries";
 export type TeacherWorkspaceView = "overview" | "resources" | "students" | "profile" | "security";
 export type StudentWorkspaceView = "dashboard" | "resources" | "live-tests" | "performance" | "payments" | "profile" | "security";
 
@@ -18,9 +18,12 @@ export type StudentPerformance = {
 };
 
 export type StudentScore = {
+  id: string;
   test: string;
   score: number;
   date: string;
+  course: Course;
+  notes?: string;
 };
 
 export type StudentPaymentRecord = {
@@ -50,19 +53,14 @@ export type PortalUser = {
   accountStatus: AccountStatus;
   courses: Course[];
   joinedOn?: string;
+  lastSeenAt?: string;
+  mustChangePassword?: boolean;
   phone?: string;
   guardianName?: string;
   address?: string;
   performance?: StudentPerformance;
   scoreHistory?: StudentScore[];
   payments?: StudentPayments;
-};
-
-export type PortalCredential = {
-  userId: string;
-  password: string;
-  mustChangePassword: boolean;
-  passwordUpdatedOn: string;
 };
 
 export type TestResource = {
@@ -76,17 +74,29 @@ export type TestResource = {
   answerReleaseStatus: AnswerReleaseStatus;
   description: string;
   addedOn: string;
+  createdBy?: string;
 };
 
-export type PortalCounters = {
-  invoice: number;
+
+export type EnquiryStatus = "new" | "contacted" | "qualified" | "closed";
+
+export type PortalEnquiry = {
+  id: string;
+  fullName: string;
+  contact: string;
+  course: string;
+  preferredTime: "Morning" | "Afternoon" | "Evening";
+  message: string;
+  status: EnquiryStatus;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type PortalState = {
   users: PortalUser[];
-  credentials: PortalCredential[];
   resources: TestResource[];
-  counters: PortalCounters;
+  enquiries: PortalEnquiry[];
 };
 
 export type AccountFormState = {
@@ -120,8 +130,22 @@ export type ResourceFormState = {
   description: string;
 };
 
-export type CreateUserInput = AccountFormState;
+export type PerformanceFormState = {
+  attendance: string;
+  completion: string;
+  rank: string;
+  lastAssessment: string;
+};
 
+export type ScoreFormState = {
+  course: Course;
+  test: string;
+  score: string;
+  date: string;
+  notes: string;
+};
+
+export type CreateUserInput = AccountFormState;
 export type UpdateUserInput = AccountFormState;
 
 export type ResetPasswordResult = {
