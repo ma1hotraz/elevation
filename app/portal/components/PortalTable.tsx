@@ -166,16 +166,20 @@ type PortalTableShellProps = {
   toolbar?: ReactNode;
   summary?: ReactNode;
   footer?: ReactNode;
+  mobileContent?: ReactNode;
   className?: string;
 };
 
-export function PortalTableShell({ children, toolbar, summary, footer, className }: PortalTableShellProps) {
+export function PortalTableShell({ children, toolbar, summary, footer, mobileContent, className }: PortalTableShellProps) {
   return (
     <div className={cn(portalStyles.tableFrame, className)}>
       {toolbar ? <div className={portalStyles.tableToolbar}>{toolbar}</div> : null}
       {summary ? <div className="border-b border-[rgba(8,47,43,0.08)] bg-[#fbfefd] px-5 py-4">{summary}</div> : null}
-      {children}
-      {footer}
+      {mobileContent ? <div className="hidden border-t border-[rgba(8,47,43,0.08)] bg-[#fbfefd] p-3 max-[640px]:grid max-[640px]:gap-3">{mobileContent}</div> : null}
+      <div className={cn("overflow-x-auto [&_table]:min-w-[900px]", mobileContent && "max-[640px]:hidden")}>
+        {children}
+      </div>
+      {footer ? <div className={cn(mobileContent && "max-[640px]:hidden")}>{footer}</div> : null}
     </div>
   );
 }

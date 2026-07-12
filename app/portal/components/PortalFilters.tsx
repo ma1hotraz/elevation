@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { dropdownControlClass } from "@/components/ui/control-styles";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,9 +12,6 @@ const filterShellClass =
   "grid w-full gap-4 bg-[#fbfefd] px-4 py-5 max-[1100px]:grid-cols-1";
 
 const filterLabelClass = "text-[0.72rem] font-black uppercase tracking-[0.14em] text-[#0d7b68]";
-
-const filterControlClass =
-  "h-10 min-h-10 rounded-[11px] border-[#d6e3e1] bg-white px-4 text-[0.93rem] shadow-[inset_0_1px_0_rgba(16,37,43,0.02)] placeholder:text-[#8b9ca1] focus-visible:border-[#0d8a74] focus-visible:ring-[#0d8a74]/15";
 
 type PortalFilterBarProps = ComponentProps<"div">;
 
@@ -39,7 +37,7 @@ export function PortalSearchFilter({ label, value, onChange, placeholder, classN
           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#708084]"
         />
         <Input
-          className={cn(filterControlClass, "pl-10")}
+          className={cn(dropdownControlClass, "pl-10")}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
@@ -70,7 +68,7 @@ export function PortalSelectFilter({
     <PortalField className={cn("mb-0 w-full gap-2 min-w-0", className)}>
       <Label className={filterLabelClass}>{label}</Label>
       <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger className={cn(filterControlClass, "w-full justify-between") }>
+        <SelectTrigger className={cn(dropdownControlClass, "w-full justify-between")}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>{children}</SelectContent>
