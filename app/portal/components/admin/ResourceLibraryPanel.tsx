@@ -7,28 +7,9 @@ import { flexRender } from "@tanstack/react-table";
 import { PortalFilterBar, PortalFilterSummary, PortalSearchFilter, PortalSelectFilter } from "../PortalFilters";
 import { PortalTableShell, TablePagination } from "../PortalTable";
 import { CATEGORIES, RESOURCE_STATUSES } from "../../portal.data";
+import { MetricCard, PortalPageHeader } from "../PortalStat";
 import { portalStyles } from "../../portalShared";
 import type { PortalController } from "../../usePortalState";
-
-function ResourceMetric({
-  label,
-  value,
-  detail,
-}: {
-  label: string;
-  value: string | number;
-  detail: string;
-}) {
-  return (
-    <article className="rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-[linear-gradient(180deg,#ffffff,#fbfefd)] p-4 shadow-[0_14px_34px_rgba(9,72,69,0.04)]">
-      <span className="block text-[0.8rem] font-bold text-[#627579]">{label}</span>
-      <strong className="mt-2 block text-[1.75rem] font-black leading-none tracking-[-0.05em] text-[#10252b]">
-        {value}
-      </strong>
-      <p className="m-0 mt-2 text-[0.84rem] leading-[1.5] text-[#627579]">{detail}</p>
-    </article>
-  );
-}
 
 export function ResourceLibraryPanel({ portal }: { portal: PortalController }) {
   const isTeacher = portal.currentUser?.role === "teacher";
@@ -40,48 +21,42 @@ export function ResourceLibraryPanel({ portal }: { portal: PortalController }) {
 
   return (
     <section className={portalStyles.resourceLibraryShell}>
-      <div className="relative overflow-hidden rounded-[28px] border border-[rgba(8,47,43,0.08)] bg-[radial-gradient(circle_at_top_right,rgba(116,237,198,0.18),transparent_24%),linear-gradient(180deg,#ffffff,#f7fbfa)] p-5 shadow-[0_22px_60px_rgba(9,72,69,0.08)]">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-3xl">
-            <p className="m-0 text-[0.74rem] font-black uppercase tracking-[0.16em] text-[#0d7b68]">
-              {isTeacher ? "Teacher resource control" : "Admin resource control"}
-            </p>
-            <h1 className="m-0 mt-2 text-[1.65rem] font-black leading-tight tracking-[-0.04em] text-[#10252b]">
-              {isTeacher ? "Manage course resources and live tests" : "Manage resources and course materials"}
-            </h1>
-            <p className="m-0 mt-3 max-w-2xl text-[0.94rem] leading-[1.65] text-[#627579]">
-              {isTeacher
-                ? "Create, edit, or archive resources only for the courses assigned to this teacher account."
-                : "Create, edit, or manage test links and study resources across the full portal."}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center justify-end gap-2.5 max-[640px]:w-full max-[640px]:flex-col">
+      <PortalPageHeader
+        eyebrow={isTeacher ? "Teacher resource control" : "Admin resource control"}
+        title={isTeacher ? "Manage course resources and live tests" : "Manage resources and course materials"}
+        lead={
+          isTeacher
+            ? "Create, edit, or archive resources only for the courses assigned to this teacher account."
+            : "Create, edit, or manage test links and study resources across the full portal."
+        }
+        actions={
+          <>
             <Button type="button" icon={<Plus />} onClick={() => portal.openResourceDialog()}>
               Add Resource
             </Button>
             <Button type="button" variant="secondary" icon={<Download />} onClick={portal.exportResources}>
               Export
             </Button>
-          </div>
-        </div>
-
+          </>
+        }
+      >
         <div className="mt-5 grid gap-3 lg:grid-cols-4 sm:grid-cols-2">
-          <ResourceMetric
+          <MetricCard
             label="Filtered resources"
             value={portal.filteredResourceRows.length}
             detail="Current result set based on your filters."
           />
-          <ResourceMetric
+          <MetricCard
             label="Live now"
             value={liveResources}
             detail="Immediately visible to the assigned learners."
           />
-          <ResourceMetric
+          <MetricCard
             label="Upcoming"
             value={upcomingResources}
             detail="Scheduled items still waiting to go live."
           />
-          <ResourceMetric
+          <MetricCard
             label="Published answers"
             value={answerLinks}
             detail="Resources with visible answer links."
@@ -107,7 +82,7 @@ export function ResourceLibraryPanel({ portal }: { portal: PortalController }) {
             </div>
           </div>
         ) : null}
-      </div>
+      </PortalPageHeader>
 
       <PortalTableShell
         toolbar={

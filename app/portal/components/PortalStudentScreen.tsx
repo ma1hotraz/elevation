@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  ArrowUpRight,
   CalendarClock,
   ClipboardList,
   FolderOpen,
@@ -19,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ActionCard, HeroMetric, HighlightCard, InfoTile, PortalHero } from "./PortalStat";
 import { portalLead, portalShell, portalStyles } from "../portalShared";
 import type { PortalController } from "../usePortalState";
 import type { TestResource } from "../portal.types";
@@ -33,73 +33,62 @@ function StudentWorkspaceHero({ portal }: { portal: PortalController }) {
 
   return (
     <section className="mb-6 grid gap-5">
-      <div className="relative overflow-hidden rounded-[28px] border border-[rgba(8,47,43,0.08)] bg-[radial-gradient(circle_at_top_right,rgba(116,237,198,0.24),transparent_24%),linear-gradient(135deg,#083f3b_0%,#0b5d54_54%,#11806e_100%)] p-6 text-white shadow-[0_26px_72px_rgba(4,39,36,0.18)]">
-        <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-3xl">
-            <p className="m-0 text-[0.74rem] font-black uppercase tracking-[0.16em] text-[#9df4d6]">
-              Student workspace
-            </p>
-            <h1 className="m-0 mt-3 text-[clamp(2rem,3.2vw,2.9rem)] font-black leading-[0.98] tracking-[-0.05em]">
-              {student?.name ?? "Student"} dashboard
-            </h1>
-            <p className="m-0 mt-3 max-w-2xl text-[0.98rem] leading-[1.7] text-white/82">
-              Resources, tests, performance, and payment visibility now follow the same visual system as admin.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {(student?.courses ?? []).map((course) => (
-                <Badge key={course} className="bg-white/14 text-white">
-                  {course}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
+      <PortalHero
+        eyebrow="Student workspace"
+        title={`${student?.name ?? "Student"} dashboard`}
+        lead="Resources, tests, performance, and payment visibility now follow the same visual system as admin."
+        actions={
           <div className="grid min-w-[230px] gap-3 rounded-[20px] border border-white/10 bg-white/[0.08] p-4 backdrop-blur-sm max-[640px]:w-full">
             <div>
               <span className="text-[0.72rem] font-black uppercase tracking-[0.14em] text-[#9df4d6]">Current standing</span>
-              <strong className="mt-2 block text-[1.8rem] font-black leading-none tracking-[-0.05em]">
-                #{performance?.rank ?? 0}
-              </strong>
+              <strong className="mt-2 block text-[1.8rem] font-black leading-none tracking-[-0.05em]">#{performance?.rank ?? 0}</strong>
             </div>
             <div className="grid gap-2 text-[0.84rem] text-white/74">
               <span>Average score: {performance?.averageScore ?? 0}%</span>
               <span>Live tests: {liveTests.length}</span>
             </div>
           </div>
-        </div>
-
-        <div className="relative z-10 mt-6 grid gap-3 lg:grid-cols-4 sm:grid-cols-2">
-          <StudentHeroStat
+        }
+        metrics={
+          <>
+          <HeroMetric
             label="Resources"
             value={portal.visibleResources.length}
             detail="Published for your assigned courses"
             icon={<FolderOpen aria-hidden="true" className="h-5 w-5" />}
           />
-          <StudentHeroStat
+          <HeroMetric
             label="Live tests"
             value={liveTests.length}
             detail="Open active links without leaving the portal"
             icon={<Link2 aria-hidden="true" className="h-5 w-5" />}
           />
-          <StudentHeroStat
+          <HeroMetric
             label="Attendance"
             value={`${performance?.attendance ?? 0}%`}
             detail="Stay on track with session participation"
             icon={<CalendarClock aria-hidden="true" className="h-5 w-5" />}
           />
-          <StudentHeroStat
+          <HeroMetric
             label="Payment due"
             value={formatMoney(student?.payments?.due ?? 0)}
             detail={student?.payments?.nextDue ? `Next due ${formatPortalDate(student.payments.nextDue)}` : "No due date set"}
             icon={<ReceiptText aria-hidden="true" className="h-5 w-5" />}
           />
+          </>
+        }
+      >
+        <div className="flex flex-wrap gap-2">
+          {(student?.courses ?? []).map((course) => (
+            <Badge key={course} className="bg-white/14 text-white">
+              {course}
+            </Badge>
+          ))}
         </div>
-
-        <div className="absolute inset-y-0 right-[-8%] hidden w-[34%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.18),transparent_66%)] blur-2xl lg:block" />
-      </div>
+      </PortalHero>
 
       <div className="grid gap-3 xl:grid-cols-3">
-        <StudentHighlightCard
+        <HighlightCard
           icon={<Target aria-hidden="true" className="h-4 w-4" />}
           title="Next focus"
           body={
@@ -108,7 +97,7 @@ function StudentWorkspaceHero({ portal }: { portal: PortalController }) {
               : "Your performance record will appear here once assessments are available."
           }
         />
-        <StudentHighlightCard
+        <HighlightCard
           icon={<Sparkles aria-hidden="true" className="h-4 w-4" />}
           title="Resource access"
           body={
@@ -117,7 +106,7 @@ function StudentWorkspaceHero({ portal }: { portal: PortalController }) {
               : "Resources will appear here once your course materials are published."
           }
         />
-        <StudentHighlightCard
+        <HighlightCard
           icon={<ReceiptText aria-hidden="true" className="h-4 w-4" />}
           title="Account status"
           body={
@@ -128,51 +117,6 @@ function StudentWorkspaceHero({ portal }: { portal: PortalController }) {
         />
       </div>
     </section>
-  );
-}
-
-function StudentHeroStat({
-  label,
-  value,
-  detail,
-  icon,
-}: {
-  label: string;
-  value: string | number;
-  detail: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <article className="rounded-[20px] border border-white/10 bg-white/[0.08] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm">
-      <div className="grid h-11 w-11 place-items-center rounded-[14px] bg-white/[0.14] text-[#9df4d6]">
-        {icon}
-      </div>
-      <strong className="mt-5 block text-[1.7rem] font-black leading-none tracking-[-0.05em]">
-        {value}
-      </strong>
-      <span className="mt-2 block text-[0.82rem] font-bold text-white/72">{label}</span>
-      <p className="m-0 mt-2 text-[0.82rem] leading-[1.5] text-white/62">{detail}</p>
-    </article>
-  );
-}
-
-function StudentHighlightCard({
-  icon,
-  title,
-  body,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  body: string;
-}) {
-  return (
-    <article className="rounded-[20px] border border-[rgba(8,47,43,0.08)] bg-[linear-gradient(180deg,#ffffff,#f8fcfb)] p-4 shadow-[0_16px_40px_rgba(9,72,69,0.06)]">
-      <div className="flex items-center gap-2 text-[#0d7b68]">
-        <span className="grid h-9 w-9 place-items-center rounded-[12px] bg-[#e9fbf5]">{icon}</span>
-        <strong className="text-[0.92rem] font-black text-[#10252b]">{title}</strong>
-      </div>
-      <p className="m-0 mt-3 text-[0.92rem] leading-[1.65] text-[#627579]">{body}</p>
-    </article>
   );
 }
 
@@ -391,9 +335,9 @@ function StudentPerformanceView({ portal }: { portal: PortalController }) {
             </div>
           </div>
           <div className="grid gap-3">
-            <StudentInfoTile label="Last assessment" value={performance?.lastAssessment || "Not available"} />
-            <StudentInfoTile label="Current rank" value={performance ? `#${performance.rank}` : "Not available"} />
-            <StudentInfoTile label="Attendance status" value={`${performance?.attendance ?? 0}% attendance recorded`} />
+            <InfoTile label="Last assessment" value={performance?.lastAssessment || "Not available"} />
+            <InfoTile label="Current rank" value={performance ? `#${performance.rank}` : "Not available"} />
+            <InfoTile label="Attendance status" value={`${performance?.attendance ?? 0}% attendance recorded`} />
           </div>
         </div>
       </div>
@@ -619,25 +563,25 @@ function StudentDashboardView({ portal }: { portal: PortalController }) {
             </div>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <StudentActionCard
+            <ActionCard
               title="Browse resources"
               body="Open revision material, study notes, and previous tests published for your courses."
               actionLabel="Open resources"
               onClick={() => portal.setStudentView("resources")}
             />
-            <StudentActionCard
+            <ActionCard
               title="Start live tests"
               body="Jump into any active test links directly from the portal."
               actionLabel="Open live tests"
               onClick={() => portal.setStudentView("live-tests")}
             />
-            <StudentActionCard
+            <ActionCard
               title="Check performance"
               body="Review recent scores, attendance, completion, and rank in one screen."
               actionLabel="Open performance"
               onClick={() => portal.setStudentView("performance")}
             />
-            <StudentActionCard
+            <ActionCard
               title="Review payments"
               body="Track dues, pending invoices, and completed payments without leaving the dashboard."
               actionLabel="Open payments"
@@ -654,9 +598,9 @@ function StudentDashboardView({ portal }: { portal: PortalController }) {
             </div>
           </div>
           <div className="grid gap-3">
-            <StudentInfoTile label="Latest assessment" value={performance?.lastAssessment || "No assessments yet"} />
-            <StudentInfoTile label="Next payment due" value={student?.payments?.nextDue ? formatPortalDate(student.payments.nextDue) : "No due date set"} />
-            <StudentInfoTile label="Live tests available" value={`${liveTests.length} active item${liveTests.length === 1 ? "" : "s"}`} />
+            <InfoTile label="Latest assessment" value={performance?.lastAssessment || "No assessments yet"} />
+            <InfoTile label="Next payment due" value={student?.payments?.nextDue ? formatPortalDate(student.payments.nextDue) : "No due date set"} />
+            <InfoTile label="Live tests available" value={`${liveTests.length} active item${liveTests.length === 1 ? "" : "s"}`} />
           </div>
         </div>
       </div>
@@ -709,37 +653,6 @@ function StudentDashboardView({ portal }: { portal: PortalController }) {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function StudentActionCard({
-  title,
-  body,
-  actionLabel,
-  onClick,
-}: {
-  title: string;
-  body: string;
-  actionLabel: string;
-  onClick: () => void;
-}) {
-  return (
-    <article className="rounded-[18px] border border-[rgba(8,47,43,0.08)] bg-[#fbfefd] p-4">
-      <strong className="block text-[0.98rem] text-[#10252b]">{title}</strong>
-      <p className="m-0 mt-2 text-[0.9rem] leading-[1.6] text-[#627579]">{body}</p>
-      <Button type="button" variant="secondary" className="mt-4" icon={<ArrowUpRight />} onClick={onClick}>
-        {actionLabel}
-      </Button>
-    </article>
-  );
-}
-
-function StudentInfoTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-[linear-gradient(180deg,#ffffff,#fbfefd)] p-4 shadow-[0_12px_34px_rgba(9,72,69,0.04)]">
-      <span className="text-[0.74rem] font-black uppercase tracking-[0.14em] text-[#0d7b68]">{label}</span>
-      <p className="m-0 mt-2 text-[0.98rem] font-black text-[#10252b]">{value}</p>
     </div>
   );
 }

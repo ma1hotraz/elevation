@@ -1,6 +1,5 @@
-import { Download, Link2, Plus, ReceiptText, Sparkles } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
-import { Badge } from "@/components/ui/badge";
+﻿import { Download, Link2, Pencil, Plus, ReceiptText, Sparkles, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -8,16 +7,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PortalFilterBar, PortalFilterSummary, PortalSearchFilter, PortalSelectFilter } from "../PortalFilters";
 import { PortalTableShell } from "../PortalTable";
+import { MetricCard, PortalCopyButton, PortalPageHeader } from "../PortalStat";
 import { portalStyles } from "../../portalShared";
 import { emptyPaymentForm } from "../../portal.data";
 import type { PaymentFormState, PortalUser } from "../../portal.types";
 import type { PortalController } from "../../usePortalState";
+import { useToast } from "../../usePortalToast";
 
 type PaymentRow = {
   id: string;
   studentId: string;
   studentName: string;
   studentEmail: string;
+  label: string;
   amount: number;
   status: "Paid" | "Pending" | "Refunded";
   method: PaymentFormState["method"];
@@ -49,29 +51,13 @@ function getStatusClass(status: PaymentRow["status"]) {
   return "bg-[#fff6e7] text-[#b96800]";
 }
 
-function PaymentStatCard({ label, value, icon, detail }: { label: string; value: string; icon: ReactNode; detail: string }) {
-  return (
-    <article className="grid gap-3 rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-[linear-gradient(180deg,#ffffff,#fbfefd)] p-4 shadow-[0_12px_34px_rgba(9,72,69,0.04)]">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <span className="block text-[0.8rem] font-bold text-[#7a8b90]">{label}</span>
-          <strong className="block text-[1.5rem] font-black leading-none text-[#10252b]">{value}</strong>
-        </div>
-        <span className="grid h-10 w-10 place-items-center rounded-[10px] bg-[#e9fbf5] text-[#087365] [&_svg]:h-5 [&_svg]:w-5">
-          {icon}
-        </span>
-      </div>
-      <p className="m-0 text-[0.84rem] leading-[1.5] text-[#627579]">{detail}</p>
-    </article>
-  );
-}
-
 export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
   const students = useMemo(
     () => portal.state.users.filter((user): user is PortalUser & { role: "student" } => user.role === "student"),
     [portal.state.users],
   );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [paymentForm, setPaymentForm] = useState<PaymentFormState>({
     ...emptyPaymentForm,
     studentId: students[0]?.id ?? "",
@@ -80,15 +66,17 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
   const [activeStudent, setActiveStudent] = useState<string>("All");
   const [activeStatus, setActiveStatus] = useState<PaymentRow["status"] | "All">("All");
   const [paymentError, setPaymentError] = useState("");
+  const toast = useToast();
 
   const paymentRows = useMemo<PaymentRow[]>(
     () =>
       students.flatMap((student) =>
         (student.payments?.records ?? []).map((record) => ({
-          id: `${student.id}-${record.id}`,
+          id: record.id,
           studentId: student.id,
           studentName: student.name,
           studentEmail: student.email,
+          label: record.label,
           amount: record.amount,
           status: record.status,
           method: record.method,
@@ -109,6 +97,7 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
         !query ||
         row.studentName.toLowerCase().includes(query) ||
         row.studentEmail.toLowerCase().includes(query) ||
+        row.label.toLowerCase().includes(query) ||
         row.invoice.toLowerCase().includes(query) ||
         row.method.toLowerCase().includes(query) ||
         row.date.toLowerCase().includes(query);
@@ -158,11 +147,12 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = `kulkaran-payments-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `elevation-payments-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+    toast.success("Payments exported", `${filteredRows.length} rows downloaded as CSV.`);
   }
 
   function resetForm(nextStudents = students) {
@@ -173,7 +163,7 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
   }
 
   async function handleSave() {
-    const error = await portal.savePaymentRecord(paymentForm);
+    const error = await portal.savePaymentRecord(paymentForm, editingPaymentId ?? undefined);
 
     if (error) {
       setPaymentError(error);
@@ -182,51 +172,69 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
 
     setPaymentError("");
     setIsDialogOpen(false);
+    setEditingPaymentId(null);
     resetForm();
+  }
+
+
+  function openCreateDialog() {
+    setEditingPaymentId(null);
+    setPaymentError("");
+    resetForm();
+    setIsDialogOpen(true);
+  }
+
+  function openEditDialog(row: PaymentRow) {
+    setEditingPaymentId(row.id);
+    setPaymentError("");
+    setPaymentForm({
+      studentId: row.studentId,
+      label: row.label,
+      amount: String(row.amount),
+      method: row.method,
+      date: row.date,
+      status: row.status,
+    });
+    setIsDialogOpen(true);
   }
 
   return (
     <section className={portalStyles.paymentPageShell}>
-      <div className="relative overflow-hidden rounded-[28px] border border-[rgba(8,47,43,0.08)] bg-[radial-gradient(circle_at_top_right,rgba(116,237,198,0.18),transparent_24%),linear-gradient(180deg,#ffffff,#f7fbfa)] p-5 shadow-[0_22px_60px_rgba(9,72,69,0.08)]">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-3xl">
-            <p className={portalStyles.paymentKicker}>Payments</p>
-            <h1 className={portalStyles.paymentTitle}>Manage student payments and records</h1>
-            <p className={portalStyles.paymentLead}>
-              Create, audit, and export payment entries. Invoice numbers are generated automatically when you save.
-            </p>
-          </div>
-
-          <div className={portalStyles.paymentHeaderActions}>
+      <PortalPageHeader
+        eyebrow="Payments"
+        title="Manage student payments and records"
+        lead="Create, audit, and export payment entries. Invoice numbers are generated automatically when you save."
+        actions={
+          <>
             <Button type="button" variant="secondary" className={portalStyles.resourceToolbarButton} icon={<Download />} onClick={exportPayments}>
               Export
             </Button>
-            <Button type="button" className={portalStyles.resourceToolbarButton} icon={<Plus />} onClick={() => setIsDialogOpen(true)}>
+            <Button type="button" className={portalStyles.resourceToolbarButton} icon={<Plus />} onClick={openCreateDialog}>
               Add Payment
             </Button>
-          </div>
-        </div>
-
+          </>
+        }
+      >
         <div className="mt-5 grid gap-3 lg:grid-cols-4 sm:grid-cols-2">
-          <PaymentStatCard
+          <MetricCard
             label="Total Revenue"
             value={formatMoney(totals.totalRevenue)}
             icon={<ReceiptText aria-hidden="true" />}
             detail="All payment records currently stored."
           />
-          <PaymentStatCard
+          <MetricCard
             label="Paid"
             value={formatMoney(totals.paid)}
             icon={<ReceiptText aria-hidden="true" />}
             detail="Collections already completed."
           />
-          <PaymentStatCard
+          <MetricCard
             label="Pending"
             value={formatMoney(totals.pending)}
             icon={<ReceiptText aria-hidden="true" />}
             detail="Outstanding dues still awaiting completion."
           />
-          <PaymentStatCard
+          <MetricCard
             label="Refunded"
             value={formatMoney(totals.refunded)}
             icon={<ReceiptText aria-hidden="true" />}
@@ -265,7 +273,7 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
             </p>
           </article>
         </div>
-      </div>
+      </PortalPageHeader>
 
       <PortalTableShell
         toolbar={
@@ -308,11 +316,13 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
           <TableHeader>
             <TableRow>
               <TableHead>Student</TableHead>
+              <TableHead>Payment</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Payment Method</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Invoice</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -324,6 +334,7 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
                     <span className="text-[0.78rem] font-semibold text-[#6b7f84]">{row.studentEmail}</span>
                   </div>
                 </TableCell>
+                <TableCell className="font-semibold text-[#46595e]">{row.label}</TableCell>
                 <TableCell className="font-black text-[#10252b]">{formatMoney(row.amount)}</TableCell>
                 <TableCell>
                   <span className={`${portalStyles.paymentStatusBadge} ${getStatusClass(row.status)}`}>{row.status}</span>
@@ -331,14 +342,35 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
                 <TableCell className="font-semibold text-[#46595e]">{row.method}</TableCell>
                 <TableCell className="font-semibold text-[#46595e]">{formatDate(row.date)}</TableCell>
                 <TableCell>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon-sm"
-                    aria-label={`Copy invoice ${row.invoice}`}
-                    onClick={() => navigator.clipboard.writeText(row.invoice)}
-                    icon={<Link2 aria-hidden="true" />}
+                  <PortalCopyButton
+                    value={row.invoice}
+                    label="Copy"
+                    copiedTitle="Invoice copied"
+                    className="h-8 rounded-[10px] px-2"
                   />
+                </TableCell>
+                <TableCell className="pr-6">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Edit ${row.label} for ${row.studentName}`}
+                      onClick={() => openEditDialog(row)}
+                    >
+                      <Pencil aria-hidden="true" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Remove ${row.label} for ${row.studentName}`}
+                      className="text-[#b42318] hover:bg-[#fff2f2] hover:text-[#b42318]"
+                      onClick={() => portal.removePaymentRecord(row.id, `${row.label} for ${row.studentName}`)}
+                    >
+                      <Trash2 aria-hidden="true" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -347,13 +379,15 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
         {filteredRows.length === 0 ? <p className={portalStyles.emptyState}>No payment records match these filters.</p> : null}
       </PortalTableShell>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) { setEditingPaymentId(null); setPaymentError(""); resetForm(); } }}>
         <DialogContent className={portalStyles.dialogContent} showCloseButton>
           <div className={portalStyles.dialogHeader}>
             <DialogHeader className={portalStyles.dialogHeaderRow}>
-              <DialogTitle className={portalStyles.dialogTitle}>Add Payment</DialogTitle>
+              <DialogTitle className={portalStyles.dialogTitle}>{editingPaymentId ? "Edit Payment" : "Add Payment"}</DialogTitle>
               <DialogDescription className={portalStyles.dialogDescription}>
-                Create a new payment record. The invoice number will be generated automatically when you save.
+                {editingPaymentId
+                  ? "Correct the payment details while keeping the original invoice number."
+                  : "Create a new payment record. The invoice number will be generated automatically when you save."}
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -439,7 +473,7 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
               Cancel
             </Button>
             <Button type="button" className="h-10 px-4 text-[0.85rem] font-black" onClick={() => void handleSave()}>
-              Save Payment
+              {editingPaymentId ? "Update Payment" : "Save Payment"}
             </Button>
           </div>
         </DialogContent>
@@ -447,3 +481,4 @@ export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
     </section>
   );
 }
+

@@ -1,4 +1,4 @@
-import { BookOpenCheck, ClipboardCheck, Copy, Mail, ShieldCheck, UserPlus, UserRoundCog, X } from "lucide-react";
+﻿import { BookOpenCheck, ClipboardCheck, Mail, ShieldCheck, UserPlus, UserRoundCog, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PortalField } from "../PortalField";
+import { PortalCopyButton } from "../PortalStat";
 import { COURSES } from "../../portal.data";
 import { portalStyles } from "../../portalShared";
 import type { PortalController } from "../../usePortalState";
@@ -246,14 +247,11 @@ export function StudentDialogs({ portal }: { portal: PortalController }) {
                   <code className="rounded-[10px] bg-[#f4faf8] px-3 py-2 text-[1rem] font-black text-[#10252b]">
                     {portal.credentialNotice?.temporaryPassword}
                   </code>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    icon={<Copy />}
-                    onClick={() => navigator.clipboard.writeText(portal.credentialNotice?.temporaryPassword ?? "")}
-                  >
-                    Copy
-                  </Button>
+                  <PortalCopyButton
+                    value={portal.credentialNotice?.temporaryPassword ?? ""}
+                    copiedTitle="Temporary password copied"
+                    copiedDescription={portal.credentialNotice?.email}
+                  />
                 </div>
               </div>
             </div>
@@ -269,3 +267,4 @@ export function StudentDialogs({ portal }: { portal: PortalController }) {
     </>
   );
 }
+

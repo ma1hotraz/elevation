@@ -22,6 +22,7 @@ import { AdminSidebar } from "./admin/AdminSidebar";
 import { ResourceFormCard } from "./admin/ResourceFormCard";
 import { ResourceLibraryPanel } from "./admin/ResourceLibraryPanel";
 import { StudentDetailsPanel } from "./admin/StudentDetailsPanel";
+import { HeroMetric, HighlightCard, MetricCard, PortalHero } from "./PortalStat";
 
 function TeacherHero({ portal }: { portal: PortalController }) {
   const liveTests = portal.visibleResources.filter((resource) => resource.category === "Live Test");
@@ -29,21 +30,12 @@ function TeacherHero({ portal }: { portal: PortalController }) {
 
   return (
     <section className="mb-6 grid gap-5">
-      <div className="relative overflow-hidden rounded-[28px] border border-[rgba(8,47,43,0.08)] bg-[radial-gradient(circle_at_top_right,rgba(116,237,198,0.24),transparent_24%),linear-gradient(135deg,#083f3b_0%,#0b5d54_54%,#11806e_100%)] p-6 text-white shadow-[0_26px_72px_rgba(4,39,36,0.18)]">
-        <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-3xl">
-            <p className="m-0 text-[0.74rem] font-black uppercase tracking-[0.16em] text-[#9df4d6]">
-              Teacher workspace
-            </p>
-            <h1 className="m-0 mt-3 text-[clamp(2rem,3.4vw,3rem)] font-black leading-[0.98] tracking-[-0.05em]">
-              Guide assigned courses with the same control system used by admin.
-            </h1>
-            <p className="m-0 mt-3 max-w-2xl text-[0.98rem] leading-[1.7] text-white/82">
-              Review student progress, publish resources faster, and keep course activity visible from one dashboard.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2.5 max-[640px]:w-full max-[640px]:flex-col">
+      <PortalHero
+        eyebrow="Teacher workspace"
+        title="Guide assigned courses with the same control system used by admin."
+        lead="Review student progress, publish resources faster, and keep course activity visible from one dashboard."
+        actions={
+          <>
             <Button type="button" size="lg" icon={<FolderOpen />} onClick={() => portal.openResourceDialog()}>
               Add Resource
             </Button>
@@ -56,41 +48,44 @@ function TeacherHero({ portal }: { portal: PortalController }) {
             >
               Review Students
             </Button>
-          </div>
-        </div>
-
-        <div className="relative z-10 mt-6 grid gap-3 lg:grid-cols-4 sm:grid-cols-2">
-          <TeacherHeroStat
+          </>
+        }
+        metrics={
+          <>
+          <HeroMetric
             label="Assigned courses"
             value={portal.visibleCourses.length}
             detail="Editable resources only within these tracks"
             icon={<BookOpen aria-hidden="true" className="h-5 w-5" />}
+            tone="Live"
           />
-          <TeacherHeroStat
+          <HeroMetric
             label="Visible resources"
             value={portal.visibleResources.length}
             detail={`${upcomingResources.length} still upcoming`}
             icon={<FolderOpen aria-hidden="true" className="h-5 w-5" />}
+            tone="Live"
           />
-          <TeacherHeroStat
+          <HeroMetric
             label="Live tests"
             value={liveTests.length}
             detail="Quick access for current learners"
             icon={<ClipboardList aria-hidden="true" className="h-5 w-5" />}
+            tone="Live"
           />
-          <TeacherHeroStat
+          <HeroMetric
             label="Assigned students"
             value={portal.teacherStudentUsers.length}
             detail="Shared-course visibility only"
             icon={<Users aria-hidden="true" className="h-5 w-5" />}
+            tone="Live"
           />
-        </div>
-
-        <div className="absolute inset-y-0 right-[-8%] hidden w-[34%] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.18),transparent_66%)] blur-2xl lg:block" />
-      </div>
+          </>
+        }
+      />
 
       <div className="grid gap-3 xl:grid-cols-3">
-        <TeacherHighlightCard
+        <HighlightCard
           icon={<Sparkles aria-hidden="true" className="h-4 w-4" />}
           title="What needs attention"
           body={
@@ -99,7 +94,7 @@ function TeacherHero({ portal }: { portal: PortalController }) {
               : "All currently visible resources are already live or archived."
           }
         />
-        <TeacherHighlightCard
+        <HighlightCard
           icon={<CalendarClock aria-hidden="true" className="h-4 w-4" />}
           title="Student follow-up"
           body={
@@ -108,7 +103,7 @@ function TeacherHero({ portal }: { portal: PortalController }) {
               : "No students are assigned to this teacher account yet."
           }
         />
-        <TeacherHighlightCard
+        <HighlightCard
           icon={<ArrowUpRight aria-hidden="true" className="h-4 w-4" />}
           title="Latest publish"
           body={
@@ -119,56 +114,6 @@ function TeacherHero({ portal }: { portal: PortalController }) {
         />
       </div>
     </section>
-  );
-}
-
-function TeacherHeroStat({
-  label,
-  value,
-  detail,
-  icon,
-}: {
-  label: string;
-  value: number;
-  detail: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <article className="rounded-[20px] border border-white/10 bg-white/[0.08] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-[14px] bg-white/[0.14] text-[#9df4d6]">
-          {icon}
-        </div>
-        <span className="rounded-full border border-white/10 bg-white/[0.08] px-2.5 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-white/72">
-          Live
-        </span>
-      </div>
-      <strong className="mt-5 block text-[1.9rem] font-black leading-none tracking-[-0.05em]">
-        {value}
-      </strong>
-      <span className="mt-2 block text-[0.82rem] font-bold text-white/72">{label}</span>
-      <p className="m-0 mt-2 text-[0.82rem] leading-[1.5] text-white/62">{detail}</p>
-    </article>
-  );
-}
-
-function TeacherHighlightCard({
-  icon,
-  title,
-  body,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  body: string;
-}) {
-  return (
-    <article className="rounded-[20px] border border-[rgba(8,47,43,0.08)] bg-[linear-gradient(180deg,#ffffff,#f8fcfb)] p-4 shadow-[0_16px_40px_rgba(9,72,69,0.06)]">
-      <div className="flex items-center gap-2 text-[#0d7b68]">
-        <span className="grid h-9 w-9 place-items-center rounded-[12px] bg-[#e9fbf5]">{icon}</span>
-        <strong className="text-[0.92rem] font-black text-[#10252b]">{title}</strong>
-      </div>
-      <p className="m-0 mt-3 text-[0.92rem] leading-[1.65] text-[#627579]">{body}</p>
-    </article>
   );
 }
 
@@ -379,7 +324,7 @@ function TeacherStudentsView({ portal }: { portal: PortalController }) {
           <div>
             <p>Students</p>
             <h2>Assigned-course student roster</h2>
-            <span>Teachers can review progress, but only admins can change account access and payments.</span>
+            <span>Teachers can review and update assigned-student progress. Account access and payments remain admin-only.</span>
           </div>
           <div className={portalStyles.panelHeaderActions}>
             <Button type="button" variant="secondary" icon={<Users />} onClick={() => portal.setTeacherView("overview")}>
@@ -389,9 +334,9 @@ function TeacherStudentsView({ portal }: { portal: PortalController }) {
         </div>
 
         <div className="grid gap-3 lg:grid-cols-3">
-          <TeacherMetricCard label="Total students" value={portal.teacherStudentUsers.length} />
-          <TeacherMetricCard label="Active access" value={activeStudents.length} />
-          <TeacherMetricCard label="Multi-course learners" value={multiCourseStudents.length} />
+          <MetricCard label="Total students" value={portal.teacherStudentUsers.length} />
+          <MetricCard label="Active access" value={activeStudents.length} />
+          <MetricCard label="Multi-course learners" value={multiCourseStudents.length} />
         </div>
       </div>
 
@@ -437,17 +382,6 @@ function TeacherStudentsView({ portal }: { portal: PortalController }) {
           <p className={portalStyles.emptyState}>No students are assigned to this teacher yet.</p>
         )}
       </div>
-    </div>
-  );
-}
-
-function TeacherMetricCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-[linear-gradient(180deg,#ffffff,#fbfefd)] p-4 shadow-[0_14px_34px_rgba(9,72,69,0.04)]">
-      <span className="block text-[0.8rem] font-bold text-[#627579]">{label}</span>
-      <strong className="mt-2 block text-[1.8rem] font-black leading-none tracking-[-0.05em] text-[#10252b]">
-        {value}
-      </strong>
     </div>
   );
 }

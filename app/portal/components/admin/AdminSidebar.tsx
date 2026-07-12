@@ -1,4 +1,5 @@
-import { ClipboardList, FolderOpen, KeyRound, LayoutDashboard, Link2, LogOut, ReceiptText, User, Users } from "lucide-react";
+import Link from "next/link";
+import { ClipboardList, FolderOpen, KeyRound, LayoutDashboard, Link2, LogOut, MessageSquareText, ReceiptText, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -145,6 +146,13 @@ function getNavItems(portal: PortalController): NavItem[] {
       active: portal.adminView === "payments",
       onClick: () => portal.setAdminView("payments"),
     },
+    {
+      key: "enquiries",
+      label: "Enquiries",
+      icon: <MessageSquareText aria-hidden="true" className="h-[17px] w-[17px]" />,
+      active: portal.adminView === "enquiries",
+      onClick: () => portal.setAdminView("enquiries"),
+    },
   ];
 }
 
@@ -188,9 +196,9 @@ export function AdminSidebar({ portal }: { portal: PortalController }) {
   return (
     <aside className={portalStyles.adminSidebar} aria-label="Portal navigation">
       <div className={portalStyles.sidebarTop}>
-        <a href="/" className={portalStyles.sidebarBrand}>
+        <Link href="/" className={portalStyles.sidebarBrand}>
           <img src="/logo2.png" alt="Elevation Institute" className={portalStyles.sidebarLogo} />
-        </a>
+        </Link>
 
         <div className={portalStyles.sidebarNavGroup}>
           <p className={cn(portalKicker, portalStyles.sidebarKicker)}>Workspace</p>

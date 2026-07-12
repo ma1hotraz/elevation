@@ -1,4 +1,4 @@
-import { ShieldAlert, Trash2, UserPlus, Users } from "lucide-react";
+import { Ban, Eye, KeyRound, Pencil, ShieldAlert, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SelectItem } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,28 +7,9 @@ import { cn } from "@/lib/utils";
 import { PortalFilterBar, PortalFilterSummary, PortalSearchFilter, PortalSelectFilter } from "../PortalFilters";
 import { PortalTableShell, TablePagination } from "../PortalTable";
 import { COURSES } from "../../portal.data";
+import { MetricCard, PortalPageHeader } from "../PortalStat";
 import { portalStyles } from "../../portalShared";
 import type { PortalController } from "../../usePortalState";
-
-function AccountMetric({
-  label,
-  value,
-  detail,
-}: {
-  label: string;
-  value: string | number;
-  detail: string;
-}) {
-  return (
-    <article className="rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-[linear-gradient(180deg,#ffffff,#fbfefd)] p-4 shadow-[0_14px_34px_rgba(9,72,69,0.04)]">
-      <span className="block text-[0.8rem] font-bold text-[#627579]">{label}</span>
-      <strong className="mt-2 block text-[1.75rem] font-black leading-none tracking-[-0.05em] text-[#10252b]">
-        {value}
-      </strong>
-      <p className="m-0 mt-2 text-[0.84rem] leading-[1.5] text-[#627579]">{detail}</p>
-    </article>
-  );
-}
 
 export function StudentManagementPanel({ portal }: { portal: PortalController }) {
   const suspendedAccounts = portal.filteredAccountRows.filter((account) => account.accountStatus === "suspended").length;
@@ -37,44 +18,38 @@ export function StudentManagementPanel({ portal }: { portal: PortalController })
 
   return (
     <section className={portalStyles.studentPageShell}>
-      <div className="relative overflow-hidden rounded-[28px] border border-[rgba(8,47,43,0.08)] bg-[radial-gradient(circle_at_top_right,rgba(116,237,198,0.18),transparent_24%),linear-gradient(180deg,#ffffff,#f7fbfa)] p-5 shadow-[0_22px_60px_rgba(9,72,69,0.08)]">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-3xl">
-            <p className="m-0 text-[0.74rem] font-black uppercase tracking-[0.16em] text-[#0d7b68]">
-              Account control
-            </p>
-            <h1 className={portalStyles.studentPageTitle}>Manage student and teacher accounts</h1>
-            <p className={portalStyles.studentPageSubtitle}>
-              Create access, assign courses, reset passwords, and control account status from one place.
-            </p>
-          </div>
-          <div className={portalStyles.studentHeaderActions}>
+      <PortalPageHeader
+        eyebrow="Account control"
+        title="Manage student and teacher accounts"
+        lead="Create access, assign courses, reset passwords, and control account status from one place."
+        actions={
+          <>
             <Button type="button" variant="secondary" icon={<Users />} onClick={() => portal.openCreateAccount("teacher")}>
               Add Teacher
             </Button>
             <Button type="button" icon={<UserPlus />} onClick={() => portal.openCreateAccount("student")}>
               Add Student
             </Button>
-          </div>
-        </div>
-
+          </>
+        }
+      >
         <div className="mt-5 grid gap-3 lg:grid-cols-4 sm:grid-cols-2">
-          <AccountMetric
+          <MetricCard
             label="Visible accounts"
             value={portal.filteredAccountRows.length}
             detail="Current result set after filters."
           />
-          <AccountMetric
+          <MetricCard
             label="Students"
             value={studentCount}
             detail="Learners currently shown in the table."
           />
-          <AccountMetric
+          <MetricCard
             label="Teachers"
             value={teacherCount}
             detail="Teaching accounts currently shown in the table."
           />
-          <AccountMetric
+          <MetricCard
             label="Suspended"
             value={suspendedAccounts}
             detail="Accounts needing review or reactivation."
@@ -97,9 +72,10 @@ export function StudentManagementPanel({ portal }: { portal: PortalController })
             </Button>
           </div>
         ) : null}
-      </div>
+      </PortalPageHeader>
 
       <PortalTableShell
+        mobileContent={<MobileAccountCards portal={portal} />}
         toolbar={
           <PortalFilterBar className="grid-cols-[minmax(0,1.3fr)_minmax(160px,0.55fr)_minmax(160px,0.55fr)_minmax(160px,0.55fr)_max-content] max-[1200px]:grid-cols-1">
             <PortalSearchFilter
@@ -177,14 +153,71 @@ export function StudentManagementPanel({ portal }: { portal: PortalController })
         {portal.accountsTable.getRowModel().rows.length === 0 ? (
           <p className={portalStyles.emptyState}>No accounts match these filters.</p>
         ) : null}
-        {portal.selectedAccountIds.length > 0 ? (
-          <div className="flex justify-end border-t border-[#e5eeec] px-3 py-3">
-            <Button type="button" variant="destructive" icon={<Trash2 />} onClick={() => void portal.removeSelectedAccounts()}>
-              Remove Selected
-            </Button>
-          </div>
-        ) : null}
       </PortalTableShell>
     </section>
+  );
+}
+
+function MobileAccountCards({ portal }: { portal: PortalController }) {
+  const rows = portal.accountsTable.getRowModel().rows;
+
+  if (!rows.length) {
+    return <p className={portalStyles.emptyState}>No accounts match these filters.</p>;
+  }
+
+  return (
+    <>
+      {rows.map((row) => {
+        const account = row.original;
+        const isSuspended = account.accountStatus === "suspended";
+
+        return (
+          <article key={account.id} className="rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-white p-4 shadow-[0_12px_34px_rgba(9,72,69,0.04)]">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <strong className="block truncate text-[1rem] text-[#10252b]">{account.name}</strong>
+                <span className="mt-1 block truncate text-[0.82rem] font-semibold text-[#627579]">{account.email}</span>
+              </div>
+              <span className={cn(portalStyles.studentStatusBadge, isSuspended ? portalStyles.studentStatusDisabled : portalStyles.studentStatusActive)}>
+                {isSuspended ? "Suspended" : "Active"}
+              </span>
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className="rounded-full border border-[#e1ecea] bg-[#fbfefd] px-2 py-1 text-[0.7rem] font-bold text-[#5f7378]">
+                {account.role}
+              </span>
+              {account.courses.length ? (
+                account.courses.map((course) => (
+                  <span key={course} className="rounded-full bg-[#e9fbf5] px-2 py-1 text-[0.7rem] font-bold text-[#087365]">
+                    {course}
+                  </span>
+                ))
+              ) : (
+                <span className="rounded-full bg-[#eef2f2] px-2 py-1 text-[0.7rem] font-bold text-[#5f7378]">No courses</span>
+              )}
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Button type="button" variant="secondary" size="sm" icon={<Eye />} onClick={() => portal.openAccountDetails(account)}>
+                View
+              </Button>
+              <Button type="button" variant="secondary" size="sm" icon={<Pencil />} onClick={() => portal.openEditAccount(account)}>
+                Edit
+              </Button>
+              <Button type="button" variant="secondary" size="sm" icon={<KeyRound />} onClick={() => void portal.requestPasswordReset(account.id)}>
+                Reset
+              </Button>
+              <Button type="button" variant="secondary" size="sm" icon={isSuspended ? <ShieldCheck /> : <Ban />} onClick={() => void portal.toggleManagedAccountStatus(account.id)}>
+                {isSuspended ? "Reactivate" : "Suspend"}
+              </Button>
+              <Button type="button" variant="destructive" size="sm" className="col-span-2" icon={<Trash2 />} onClick={() => portal.removeManagedAccount(account.id)}>
+                Delete
+              </Button>
+            </div>
+          </article>
+        );
+      })}
+    </>
   );
 }

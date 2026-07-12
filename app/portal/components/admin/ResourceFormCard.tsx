@@ -1,4 +1,4 @@
-import { BookOpenCheck, FileText, Link2, Plus, Save, X } from "lucide-react";
+﻿import { BookOpenCheck, FileText, Link2, Plus, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -252,3 +252,4 @@ export function ResourceFormCard({ portal }: { portal: PortalController }) {
     </Dialog>
   );
 }
+

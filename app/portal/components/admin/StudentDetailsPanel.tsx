@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -9,11 +12,17 @@ import {
   School,
   ShieldCheck,
   UserRound,
+  Plus,
+  Save,
+  Trash2,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { portalStyles } from "../../portalShared";
 import type { PortalController } from "../../usePortalState";
+import type { PerformanceFormState, ScoreFormState } from "../../portal.types";
 import { PortalTabs, PortalTabsContent, PortalTabsList, PortalTabsTrigger } from "../PortalTabs";
 
 type StudentDetailsPanelProps = {
@@ -82,6 +91,22 @@ function SummaryCard({
 
 export function StudentDetailsPanel({ portal, showPayments = true, allowEdit = true }: StudentDetailsPanelProps) {
   const account = portal.selectedAccount;
+  const [showProgressEditor, setShowProgressEditor] = useState(false);
+  const [showScoreEditor, setShowScoreEditor] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [progressForm, setProgressForm] = useState<PerformanceFormState>({
+    attendance: String(account?.performance?.attendance ?? 0),
+    completion: String(account?.performance?.completion ?? 0),
+    rank: String(account?.performance?.rank ?? 0),
+    lastAssessment: account?.performance?.lastAssessment ?? "No assessments yet",
+  });
+  const [scoreForm, setScoreForm] = useState<ScoreFormState>({
+    course: account?.courses[0] ?? "IELTS",
+    test: "",
+    score: "",
+    date: new Date().toISOString().slice(0, 10),
+    notes: "",
+  });
 
   if (!account) {
     return (
@@ -94,6 +119,7 @@ export function StudentDetailsPanel({ portal, showPayments = true, allowEdit = t
     );
   }
 
+  const accountId = account.id;
   const isStudent = account.role === "student";
   const performance = account.performance;
   const payments = account.payments;
@@ -101,6 +127,24 @@ export function StudentDetailsPanel({ portal, showPayments = true, allowEdit = t
   const bestScore = [...scoreHistory].sort((left, right) => right.score - left.score)[0];
   const improvement = performance ? Math.max(0, performance.averageScore - 70) : undefined;
   const latestScore = scoreHistory[0];
+  const canManagePerformance = isStudent && (portal.currentUser?.role === "admin" || portal.currentUser?.role === "teacher");
+
+  async function submitProgress(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const error = await portal.saveStudentPerformance(accountId, progressForm);
+    setFormError(error ?? "");
+    if (!error) setShowProgressEditor(false);
+  }
+
+  async function submitScore(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const error = await portal.addStudentScore(accountId, scoreForm);
+    setFormError(error ?? "");
+    if (!error) {
+      setShowScoreEditor(false);
+      setScoreForm((current) => ({ ...current, test: "", score: "", notes: "", date: new Date().toISOString().slice(0, 10) }));
+    }
+  }
 
   return (
     <section className={portalStyles.studentDetailsShell}>
@@ -282,6 +326,81 @@ export function StudentDetailsPanel({ portal, showPayments = true, allowEdit = t
                 </div>
               </div>
 
+              {canManagePerformance ? (
+                <article className={portalStyles.studentDetailsCard}>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className={portalStyles.studentDetailsCardLabel}>Progress controls</p>
+                      <p className="m-0 mt-1 text-[0.86rem] leading-[1.55] text-[#6b7f84]">Keep attendance, completion, rank, and assessment history accurate.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="button" variant="secondary" icon={showProgressEditor ? <X /> : <Save />} onClick={() => { setShowProgressEditor((value) => !value); setFormError(""); }}>
+                        {showProgressEditor ? "Close" : "Update progress"}
+                      </Button>
+                      <Button type="button" icon={showScoreEditor ? <X /> : <Plus />} onClick={() => { setShowScoreEditor((value) => !value); setFormError(""); }}>
+                        {showScoreEditor ? "Close" : "Add score"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {showProgressEditor ? (
+                    <form onSubmit={submitProgress} className="mt-5 grid gap-4 rounded-[16px] border border-[#e3eeeb] bg-[#f8fcfb] p-4 lg:grid-cols-4">
+                      <label className="grid gap-1.5 text-[0.78rem] font-black text-[#45595e]">
+                        Attendance (%)
+                        <Input type="number" min="0" max="100" value={progressForm.attendance} onChange={(event) => setProgressForm((current) => ({ ...current, attendance: event.target.value }))} required />
+                      </label>
+                      <label className="grid gap-1.5 text-[0.78rem] font-black text-[#45595e]">
+                        Completion (%)
+                        <Input type="number" min="0" max="100" value={progressForm.completion} onChange={(event) => setProgressForm((current) => ({ ...current, completion: event.target.value }))} required />
+                      </label>
+                      <label className="grid gap-1.5 text-[0.78rem] font-black text-[#45595e]">
+                        Rank
+                        <Input type="number" min="0" value={progressForm.rank} onChange={(event) => setProgressForm((current) => ({ ...current, rank: event.target.value }))} required />
+                      </label>
+                      <label className="grid gap-1.5 text-[0.78rem] font-black text-[#45595e]">
+                        Last assessment
+                        <Input value={progressForm.lastAssessment} onChange={(event) => setProgressForm((current) => ({ ...current, lastAssessment: event.target.value }))} maxLength={160} required />
+                      </label>
+                      <div className="flex items-center gap-3 lg:col-span-4">
+                        <Button type="submit" icon={<Save />}>Save progress</Button>
+                      </div>
+                    </form>
+                  ) : null}
+
+                  {showScoreEditor ? (
+                    <form onSubmit={submitScore} className="mt-5 grid gap-4 rounded-[16px] border border-[#e3eeeb] bg-[#f8fcfb] p-4 lg:grid-cols-2">
+                      <label className="grid gap-1.5 text-[0.78rem] font-black text-[#45595e]">
+                        Course
+                        <select className="h-10 rounded-md border border-[#d8e6e3] bg-white px-3 text-sm" value={scoreForm.course} onChange={(event) => setScoreForm((current) => ({ ...current, course: event.target.value as ScoreFormState["course"] }))} required>
+                          {account.courses.map((course) => <option key={course}>{course}</option>)}
+                        </select>
+                      </label>
+                      <label className="grid gap-1.5 text-[0.78rem] font-black text-[#45595e]">
+                        Assessment name
+                        <Input value={scoreForm.test} onChange={(event) => setScoreForm((current) => ({ ...current, test: event.target.value }))} placeholder="e.g. IELTS Reading Mock 4" maxLength={160} required />
+                      </label>
+                      <label className="grid gap-1.5 text-[0.78rem] font-black text-[#45595e]">
+                        Score (%)
+                        <Input type="number" min="0" max="100" step="0.1" value={scoreForm.score} onChange={(event) => setScoreForm((current) => ({ ...current, score: event.target.value }))} required />
+                      </label>
+                      <label className="grid gap-1.5 text-[0.78rem] font-black text-[#45595e]">
+                        Assessment date
+                        <Input type="date" value={scoreForm.date} onChange={(event) => setScoreForm((current) => ({ ...current, date: event.target.value }))} required />
+                      </label>
+                      <label className="grid gap-1.5 text-[0.78rem] font-black text-[#45595e] lg:col-span-2">
+                        Notes <span className="font-semibold text-[#819095]">(optional)</span>
+                        <Input value={scoreForm.notes} onChange={(event) => setScoreForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Feedback or focus area" maxLength={500} />
+                      </label>
+                      <div className="flex items-center gap-3 lg:col-span-2">
+                        <Button type="submit" icon={<Plus />}>Add assessment</Button>
+                      </div>
+                    </form>
+                  ) : null}
+
+                  {formError ? <p className="m-0 mt-3 rounded-[10px] bg-[#fff1f0] px-3 py-2 text-[0.82rem] font-bold text-[#a3342c]" role="alert">{formError}</p> : null}
+                </article>
+              ) : null}
+
               <article className={portalStyles.studentDetailsCard}>
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <p className={portalStyles.studentDetailsCardLabel}>Recent Test Scores</p>
@@ -293,19 +412,24 @@ export function StudentDetailsPanel({ portal, showPayments = true, allowEdit = t
 
                 {scoreHistory.length ? (
                   <div className="grid gap-2">
-                    {scoreHistory.map((score, index) => (
-                      <div key={`${score.test}-${score.date}`} className="rounded-[12px] border border-[#e5eeec] bg-white px-4 py-3">
+                    {scoreHistory.map((score) => (
+                      <div key={score.id} className="rounded-[12px] border border-[#e5eeec] bg-white px-4 py-3">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div>
                             <strong className="block text-[0.95rem] text-[#10252b]">{score.test}</strong>
                             <span className="text-[0.8rem] font-semibold text-[#6b7f84]">{formatDate(score.date)}</span>
                           </div>
-                          <Badge variant="outline">{account.courses[0] ?? "Course"}</Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{score.course}</Badge>
+                            {canManagePerformance ? (
+                              <Button type="button" variant="destructive" size="icon-sm" aria-label={`Remove ${score.test}`} icon={<Trash2 />} onClick={() => void portal.removeStudentScore(score.id)} />
+                            ) : null}
+                          </div>
                         </div>
                         <div className="mt-2 flex flex-wrap gap-2 text-[0.85rem] font-semibold text-[#46595e]">
-                          <span>{index % 2 === 0 ? "Live Test" : "Practice"}</span>
                           <span>Score {formatScore(score.score)}</span>
                           <span>Max 100%</span>
+                          {score.notes ? <span>{score.notes}</span> : null}
                         </div>
                       </div>
                     ))}

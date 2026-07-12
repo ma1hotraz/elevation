@@ -48,6 +48,8 @@ export function PortalLoginScreen({ portal }: { portal: PortalController }) {
     setResetPasswordConfirm("");
   }
 
+
+
   return (
     <main className={cn(portalStyles.page, portalStyles.loginPage)}>
       <header className={portalStyles.loginTopbar}>
@@ -84,6 +86,7 @@ export function PortalLoginScreen({ portal }: { portal: PortalController }) {
             <FeatureTile icon={<GraduationCap aria-hidden="true" />} title={"Structured\nPortal Access"} />
             <FeatureTile icon={<ChartNoAxesCombined aria-hidden="true" />} title={"Progress &\nPerformance Tracking"} />
           </div>
+
         </div>
 
         <Card className={portalStyles.loginCard}>
@@ -153,9 +156,9 @@ export function PortalLoginScreen({ portal }: { portal: PortalController }) {
                 {resetError ? <p className={portalStyles.error}>{resetError}</p> : null}
                 {portal.authInfo ? <p className="m-0 text-[0.88rem] font-semibold text-[#087365]">{portal.authInfo}</p> : null}
 
-                <Button type="submit" variant="primary" className={cn(portalStyles.fullWidthButton, "h-12 rounded-[12px]")}>
+                <Button type="submit" variant="primary" disabled={portal.isMutating} className={cn(portalStyles.fullWidthButton, "h-12 rounded-[12px]")}>
                   <KeyRound aria-hidden="true" />
-                  Update Password
+                  {portal.isMutating ? "Updating…" : "Update Password"}
                 </Button>
               </form>
             ) : (
@@ -204,7 +207,7 @@ export function PortalLoginScreen({ portal }: { portal: PortalController }) {
                   <button
                     type="button"
                     className={portalStyles.loginForgot}
-                    onClick={() => portal.setAuthInfo("Forgot password is admin-controlled. Ask an admin to reset your access.")}
+                    onClick={() => void portal.requestPasswordResetEmail()}
                   >
                     Forgot password?
                   </button>
@@ -213,15 +216,15 @@ export function PortalLoginScreen({ portal }: { portal: PortalController }) {
                 {portal.authError ? <p className={portalStyles.error}>{portal.authError}</p> : null}
                 {portal.authInfo ? <p className="m-0 text-[0.88rem] font-semibold text-[#087365]">{portal.authInfo}</p> : null}
 
-                <Button type="submit" variant="primary" className={cn(portalStyles.fullWidthButton, "h-12 rounded-[12px]")}>
+                <Button type="submit" variant="primary" disabled={portal.isMutating} className={cn(portalStyles.fullWidthButton, "h-12 rounded-[12px]")}>
                   <LogIn aria-hidden="true" />
-                  Sign In
+                  {portal.isMutating ? "Signing in…" : "Sign In"}
                 </Button>
 
                 <div className={portalStyles.loginSecureDivider} aria-hidden="true">
                   <ShieldCheck />
                 </div>
-                <p className={portalStyles.loginSecureText}>Admins can create accounts and issue temporary passwords with first-login reset.</p>
+                <p className={portalStyles.loginSecureText}>Secure access with role-based permissions and protected account recovery.</p>
               </form>
             )}
           </CardContent>
