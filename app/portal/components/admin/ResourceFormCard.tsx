@@ -1,27 +1,18 @@
 import { BookOpenCheck, FileText, Link2, Plus, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { PortalField } from "../PortalField";
-import { CATEGORIES, COURSES } from "../../portal.data";
+import { CATEGORIES, RESOURCE_STATUSES } from "../../portal.data";
 import { portalStyles } from "../../portalShared";
 import type { PortalController } from "../../usePortalState";
 
-type ResourceFormDialogProps = {
-  portal: PortalController;
-};
-
-export function ResourceFormCard({ portal }: ResourceFormDialogProps) {
+export function ResourceFormCard({ portal }: { portal: PortalController }) {
   const isEditing = portal.editingResourceId !== null;
+  const answerLinkEnabled = portal.resourceForm.answerUrl.trim().length > 0;
 
   return (
     <Dialog open={portal.isResourceDialogOpen} onOpenChange={(open) => (open ? portal.openResourceDialog() : portal.closeResourceDialog())}>
@@ -29,12 +20,12 @@ export function ResourceFormCard({ portal }: ResourceFormDialogProps) {
         <div className={portalStyles.dialogHeader}>
           <DialogHeader className={portalStyles.dialogHeaderRow}>
             <DialogTitle className={portalStyles.dialogTitle}>
-              {isEditing ? "Edit Test" : "Add Test"}
+              {isEditing ? "Edit resource" : "Create resource"}
             </DialogTitle>
             <DialogDescription className={portalStyles.dialogDescription}>
               {isEditing
-                ? "Update the link, attach answer access, or adjust visibility for this resource."
-                : "Create a new test, previous paper, or revision material. Everything stays link-based, with no file upload."}
+                ? "Update the link, answer visibility, or publication status for this resource."
+                : "Create a live test, previous paper, or study resource. Everything stays link-based in the frontend flow."}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -58,7 +49,7 @@ export function ResourceFormCard({ portal }: ResourceFormDialogProps) {
                 />
               </PortalField>
 
-              <div className="grid gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <PortalField>
                   <Label className="inline-flex items-center gap-2 text-[0.82rem] font-black text-[#45595e]">
                     <BookOpenCheck aria-hidden="true" className="h-4 w-4 text-[#0d7b68]" />
@@ -69,7 +60,7 @@ export function ResourceFormCard({ portal }: ResourceFormDialogProps) {
                     onValueChange={(value) =>
                       portal.setResourceForm((current) => ({
                         ...current,
-                        course: value as (typeof COURSES)[number],
+                        course: value as PortalController["visibleCourses"][number],
                       }))
                     }
                   >
@@ -77,7 +68,7 @@ export function ResourceFormCard({ portal }: ResourceFormDialogProps) {
                       <SelectValue placeholder="Select course" />
                     </SelectTrigger>
                     <SelectContent>
-                      {COURSES.map((course) => (
+                      {portal.visibleCourses.map((course) => (
                         <SelectItem key={course} value={course}>
                           {course}
                         </SelectItem>
@@ -86,6 +77,29 @@ export function ResourceFormCard({ portal }: ResourceFormDialogProps) {
                   </Select>
                 </PortalField>
 
+                <PortalField>
+                  <Label className="text-[0.82rem] font-black text-[#45595e]">Publication Status</Label>
+                  <Select
+                    value={portal.resourceForm.status}
+                    onValueChange={(value) =>
+                      portal.setResourceForm((current) => ({
+                        ...current,
+                        status: value as PortalController["resourceForm"]["status"],
+                      }))
+                    }
+                  >
+                    <SelectTrigger className={`${portalStyles.dialogControl} w-full justify-between`}>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RESOURCE_STATUSES.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </PortalField>
               </div>
 
               <div className={portalStyles.dialogSection}>
@@ -128,7 +142,7 @@ export function ResourceFormCard({ portal }: ResourceFormDialogProps) {
               <PortalField>
                 <Label className="inline-flex items-center gap-2 text-[0.82rem] font-black text-[#45595e]">
                   <Link2 aria-hidden="true" className="h-4 w-4 text-[#0d7b68]" />
-                  Link
+                  Resource Link
                 </Label>
                 <Input
                   className={portalStyles.dialogControl}
@@ -154,13 +168,39 @@ export function ResourceFormCard({ portal }: ResourceFormDialogProps) {
                   type="url"
                   value={portal.resourceForm.answerUrl}
                   onChange={(event) =>
-                    portal.setResourceForm((current) => ({ ...current, answerUrl: event.target.value }))
+                    portal.setResourceForm((current) => ({
+                      ...current,
+                      answerUrl: event.target.value,
+                      answerReleaseStatus: event.target.value.trim() ? current.answerReleaseStatus : "Hidden",
+                    }))
                   }
                   placeholder="https://forms.gle/answer-key..."
                 />
                 <p className="m-0 text-[0.78rem] leading-[1.5] text-[#6c7d81]">
-                  Leave this blank until the live test is closed. You can return later and attach the answer link.
+                  Keep this blank until the answer should be available. Students only see published answer links.
                 </p>
+              </PortalField>
+
+              <PortalField>
+                <Label className="text-[0.82rem] font-black text-[#45595e]">Answer Visibility</Label>
+                <Select
+                  value={portal.resourceForm.answerReleaseStatus}
+                  onValueChange={(value) =>
+                    portal.setResourceForm((current) => ({
+                      ...current,
+                      answerReleaseStatus: value as "Hidden" | "Published",
+                    }))
+                  }
+                  disabled={!answerLinkEnabled}
+                >
+                  <SelectTrigger className={`${portalStyles.dialogControl} w-full justify-between`}>
+                    <SelectValue placeholder="Select answer visibility" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Hidden">Hidden</SelectItem>
+                    <SelectItem value="Published">Published</SelectItem>
+                  </SelectContent>
+                </Select>
               </PortalField>
 
               <PortalField>
@@ -179,6 +219,12 @@ export function ResourceFormCard({ portal }: ResourceFormDialogProps) {
                   className="min-h-[112px] rounded-[10px] border-[#d6e3e1] bg-white px-4 py-3 text-[0.94rem] text-[#10252b] placeholder:text-[#8b9ca1] focus-visible:border-[#0d8a74] focus-visible:ring-[#0d8a74]/15"
                 />
               </PortalField>
+
+              {portal.resourceDialogError ? (
+                <p className="m-0 rounded-[12px] border border-[#f2d3d8] bg-[#fff7f8] px-4 py-3 text-[0.88rem] font-semibold text-[#b42318]">
+                  {portal.resourceDialogError}
+                </p>
+              ) : null}
             </div>
           </div>
 
@@ -198,7 +244,7 @@ export function ResourceFormCard({ portal }: ResourceFormDialogProps) {
               className="h-10 px-4 text-[0.85rem] font-black"
               icon={isEditing ? <Save /> : <Plus />}
             >
-              {isEditing ? "Save Changes" : "Add Test"}
+              {isEditing ? "Save Changes" : "Create Resource"}
             </Button>
           </div>
         </form>

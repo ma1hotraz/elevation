@@ -1,11 +1,13 @@
-import { Download, Link2, Plus, ReceiptText, Search } from "lucide-react";
+import { Download, Link2, Plus, ReceiptText, Sparkles } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PortalFilterBar, PortalFilterSummary, PortalSearchFilter, PortalSelectFilter } from "../PortalFilters";
+import { PortalTableShell } from "../PortalTable";
 import { portalStyles } from "../../portalShared";
 import { emptyPaymentForm } from "../../portal.data";
 import type { PaymentFormState, PortalUser } from "../../portal.types";
@@ -47,17 +49,9 @@ function getStatusClass(status: PaymentRow["status"]) {
   return "bg-[#fff6e7] text-[#b96800]";
 }
 
-function PaymentStatCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon: ReactNode;
-}) {
+function PaymentStatCard({ label, value, icon, detail }: { label: string; value: string; icon: ReactNode; detail: string }) {
   return (
-    <article className="grid gap-3 rounded-[14px] border border-[rgba(8,47,43,0.08)] bg-white p-4 shadow-[0_12px_34px_rgba(9,72,69,0.04)]">
+    <article className="grid gap-3 rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-[linear-gradient(180deg,#ffffff,#fbfefd)] p-4 shadow-[0_12px_34px_rgba(9,72,69,0.04)]">
       <div className="flex items-start justify-between gap-3">
         <div>
           <span className="block text-[0.8rem] font-bold text-[#7a8b90]">{label}</span>
@@ -67,15 +61,12 @@ function PaymentStatCard({
           {icon}
         </span>
       </div>
+      <p className="m-0 text-[0.84rem] leading-[1.5] text-[#627579]">{detail}</p>
     </article>
   );
 }
 
-type PaymentHistoryPanelProps = {
-  portal: PortalController;
-};
-
-export function PaymentHistoryPanel({ portal }: PaymentHistoryPanelProps) {
+export function PaymentHistoryPanel({ portal }: { portal: PortalController }) {
   const students = useMemo(
     () => portal.state.users.filter((user): user is PortalUser & { role: "student" } => user.role === "student"),
     [portal.state.users],
@@ -88,6 +79,7 @@ export function PaymentHistoryPanel({ portal }: PaymentHistoryPanelProps) {
   const [paymentSearch, setPaymentSearch] = useState("");
   const [activeStudent, setActiveStudent] = useState<string>("All");
   const [activeStatus, setActiveStatus] = useState<PaymentRow["status"] | "All">("All");
+  const [paymentError, setPaymentError] = useState("");
 
   const paymentRows = useMemo<PaymentRow[]>(
     () =>
@@ -134,10 +126,43 @@ export function PaymentHistoryPanel({ portal }: PaymentHistoryPanelProps) {
     return { totalRevenue, paid, pending, refunded };
   }, [paymentRows]);
 
+  const largestPending = useMemo(
+    () =>
+      [...paymentRows]
+        .filter((row) => row.status === "Pending")
+        .sort((left, right) => right.amount - left.amount)[0],
+    [paymentRows],
+  );
+
   function clearFilters() {
     setPaymentSearch("");
     setActiveStudent("All");
     setActiveStatus("All");
+  }
+
+  function exportPayments() {
+    const headers = ["Student", "Email", "Amount", "Status", "Method", "Date", "Invoice"];
+    const rows = filteredRows.map((row) => [
+      row.studentName,
+      row.studentEmail,
+      String(row.amount),
+      row.status,
+      row.method,
+      row.date,
+      row.invoice,
+    ]);
+    const escapeCsvValue = (value: string) => `"${value.replaceAll('"', '""')}"`;
+    const csv = [headers, ...rows].map((row) => row.map(escapeCsvValue).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `kulkaran-payments-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   }
 
   function resetForm(nextStudents = students) {
@@ -147,87 +172,138 @@ export function PaymentHistoryPanel({ portal }: PaymentHistoryPanelProps) {
     });
   }
 
-  function handleSave() {
-    portal.savePaymentRecord(paymentForm);
+  async function handleSave() {
+    const error = await portal.savePaymentRecord(paymentForm);
+
+    if (error) {
+      setPaymentError(error);
+      return;
+    }
+
+    setPaymentError("");
     setIsDialogOpen(false);
     resetForm();
   }
 
   return (
     <section className={portalStyles.paymentPageShell}>
-      <div className={portalStyles.paymentHeader}>
-        <div>
-          <p className={portalStyles.paymentKicker}>Payments</p>
-          <h1 className={portalStyles.paymentTitle}>Payment History</h1>
-          <p className={portalStyles.paymentLead}>Manual records for student payments and transactions.</p>
-        </div>
+      <div className="relative overflow-hidden rounded-[28px] border border-[rgba(8,47,43,0.08)] bg-[radial-gradient(circle_at_top_right,rgba(116,237,198,0.18),transparent_24%),linear-gradient(180deg,#ffffff,#f7fbfa)] p-5 shadow-[0_22px_60px_rgba(9,72,69,0.08)]">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-3xl">
+            <p className={portalStyles.paymentKicker}>Payments</p>
+            <h1 className={portalStyles.paymentTitle}>Manage student payments and records</h1>
+            <p className={portalStyles.paymentLead}>
+              Create, audit, and export payment entries. Invoice numbers are generated automatically when you save.
+            </p>
+          </div>
 
-        <div className={portalStyles.paymentHeaderActions}>
-          <Button type="button" variant="secondary" className={portalStyles.resourceToolbarButton} icon={<Download />}>
-            Export
-          </Button>
-          <Button type="button" className={portalStyles.resourceToolbarButton} icon={<Plus />} onClick={() => setIsDialogOpen(true)}>
-            Add Payment
-          </Button>
-        </div>
-      </div>
-
-      <div className={portalStyles.paymentStatGrid}>
-        <PaymentStatCard label="Total Revenue" value={formatMoney(totals.totalRevenue)} icon={<ReceiptText aria-hidden="true" />} />
-        <PaymentStatCard label="Paid" value={formatMoney(totals.paid)} icon={<ReceiptText aria-hidden="true" />} />
-        <PaymentStatCard label="Pending" value={formatMoney(totals.pending)} icon={<ReceiptText aria-hidden="true" />} />
-        <PaymentStatCard label="Refunded" value={formatMoney(totals.refunded)} icon={<ReceiptText aria-hidden="true" />} />
-      </div>
-
-      <div className={portalStyles.paymentFilterGrid}>
-        <div className="grid gap-2">
-          <Label className="sr-only">Search payments</Label>
-          <div className="relative">
-            <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a9a9d]" />
-            <Input
-              className="h-10 rounded-[10px] border-[#d6e3e1] bg-white pl-10 text-[0.9rem]"
-              value={paymentSearch}
-              onChange={(event) => setPaymentSearch(event.target.value)}
-              placeholder="Search student, invoice, or method..."
-            />
+          <div className={portalStyles.paymentHeaderActions}>
+            <Button type="button" variant="secondary" className={portalStyles.resourceToolbarButton} icon={<Download />} onClick={exportPayments}>
+              Export
+            </Button>
+            <Button type="button" className={portalStyles.resourceToolbarButton} icon={<Plus />} onClick={() => setIsDialogOpen(true)}>
+              Add Payment
+            </Button>
           </div>
         </div>
 
-        <Select value={activeStudent} onValueChange={setActiveStudent}>
-          <SelectTrigger className="h-10 w-full rounded-[10px] border-[#d6e3e1] bg-white px-4 text-[0.9rem]">
-            <SelectValue placeholder="All Students" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="All">All Students</SelectItem>
-            {students.map((student) => (
-              <SelectItem key={student.id} value={student.id}>
-                {student.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="mt-5 grid gap-3 lg:grid-cols-4 sm:grid-cols-2">
+          <PaymentStatCard
+            label="Total Revenue"
+            value={formatMoney(totals.totalRevenue)}
+            icon={<ReceiptText aria-hidden="true" />}
+            detail="All payment records currently stored."
+          />
+          <PaymentStatCard
+            label="Paid"
+            value={formatMoney(totals.paid)}
+            icon={<ReceiptText aria-hidden="true" />}
+            detail="Collections already completed."
+          />
+          <PaymentStatCard
+            label="Pending"
+            value={formatMoney(totals.pending)}
+            icon={<ReceiptText aria-hidden="true" />}
+            detail="Outstanding dues still awaiting completion."
+          />
+          <PaymentStatCard
+            label="Refunded"
+            value={formatMoney(totals.refunded)}
+            icon={<ReceiptText aria-hidden="true" />}
+            detail="Entries reversed or sent back."
+          />
+        </div>
 
-        <Select value={activeStatus} onValueChange={(value) => setActiveStatus(value as PaymentRow["status"] | "All")}>
-          <SelectTrigger className="h-10 w-full rounded-[10px] border-[#d6e3e1] bg-white px-4 text-[0.9rem]">
-            <SelectValue placeholder="All Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="All">All Status</SelectItem>
-            <SelectItem value="Paid">Paid</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="Refunded">Refunded</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="mt-5 grid gap-3 xl:grid-cols-3">
+          <article className="rounded-[18px] border border-[rgba(8,47,43,0.08)] bg-white p-4">
+            <div className="flex items-center gap-2 text-[#0d7b68]">
+              <Sparkles aria-hidden="true" className="h-4 w-4" />
+              <strong className="text-[0.92rem] text-[#10252b]">Collection focus</strong>
+            </div>
+            <p className="m-0 mt-3 text-[0.88rem] leading-[1.55] text-[#627579]">
+              {largestPending
+                ? `${largestPending.studentName} has the largest pending entry at ${formatMoney(largestPending.amount)}.`
+                : "There are no pending payment records right now."}
+            </p>
+          </article>
+          <article className="rounded-[18px] border border-[rgba(8,47,43,0.08)] bg-white p-4">
+            <div className="flex items-center gap-2 text-[#0d7b68]">
+              <ReceiptText aria-hidden="true" className="h-4 w-4" />
+              <strong className="text-[0.92rem] text-[#10252b]">Filtered records</strong>
+            </div>
+            <p className="m-0 mt-3 text-[0.88rem] leading-[1.55] text-[#627579]">
+              {filteredRows.length} payment record{filteredRows.length === 1 ? "" : "s"} match the current search and filters.
+            </p>
+          </article>
+          <article className="rounded-[18px] border border-[rgba(8,47,43,0.08)] bg-white p-4">
+            <div className="flex items-center gap-2 text-[#0d7b68]">
+              <Link2 aria-hidden="true" className="h-4 w-4" />
+              <strong className="text-[0.92rem] text-[#10252b]">Invoice handling</strong>
+            </div>
+            <p className="m-0 mt-3 text-[0.88rem] leading-[1.55] text-[#627579]">
+              Use the table action to copy invoice IDs directly from each row for follow-up and reconciliation.
+            </p>
+          </article>
+        </div>
       </div>
 
-      <div className={portalStyles.paymentCountRow}>
-        <Button type="button" variant="secondary" className={portalStyles.resourceToolbarButton} onClick={clearFilters}>
-          Clear filters
-        </Button>
-        <span>{filteredRows.length} payments found</span>
-      </div>
-
-      <div className={portalStyles.paymentTableFrame}>
+      <PortalTableShell
+        toolbar={
+          <PortalFilterBar className="grid-cols-[minmax(0,1fr)_minmax(170px,0.7fr)_minmax(170px,0.7fr)_max-content] max-[1100px]:grid-cols-1">
+            <PortalSearchFilter
+              label="Search payments"
+              value={paymentSearch}
+              onChange={setPaymentSearch}
+              placeholder="Search student, invoice, or method..."
+            />
+            <PortalSelectFilter
+              label="Student"
+              value={activeStudent}
+              onValueChange={setActiveStudent}
+              placeholder="All students"
+            >
+              <SelectItem value="All">All students</SelectItem>
+              {students.map((student) => (
+                <SelectItem key={student.id} value={student.id}>
+                  {student.name}
+                </SelectItem>
+              ))}
+            </PortalSelectFilter>
+            <PortalSelectFilter
+              label="Status"
+              value={activeStatus}
+              onValueChange={(value) => setActiveStatus(value as PaymentRow["status"] | "All")}
+              placeholder="All status"
+            >
+              <SelectItem value="All">All status</SelectItem>
+              <SelectItem value="Paid">Paid</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+              <SelectItem value="Refunded">Refunded</SelectItem>
+            </PortalSelectFilter>
+            <PortalFilterSummary onClear={clearFilters} />
+          </PortalFilterBar>
+        }
+      >
         <Table>
           <TableHeader>
             <TableRow>
@@ -242,7 +318,7 @@ export function PaymentHistoryPanel({ portal }: PaymentHistoryPanelProps) {
           <TableBody>
             {filteredRows.map((row) => (
               <TableRow key={row.id}>
-                <TableCell>
+                <TableCell className="pl-6">
                   <div className="grid gap-0.5">
                     <strong className="text-[0.92rem] text-[#10252b]">{row.studentName}</strong>
                     <span className="text-[0.78rem] font-semibold text-[#6b7f84]">{row.studentEmail}</span>
@@ -259,7 +335,7 @@ export function PaymentHistoryPanel({ portal }: PaymentHistoryPanelProps) {
                     type="button"
                     variant="secondary"
                     size="icon-sm"
-                    aria-label={`Preview invoice ${row.invoice}`}
+                    aria-label={`Copy invoice ${row.invoice}`}
                     onClick={() => navigator.clipboard.writeText(row.invoice)}
                     icon={<Link2 aria-hidden="true" />}
                   />
@@ -269,7 +345,7 @@ export function PaymentHistoryPanel({ portal }: PaymentHistoryPanelProps) {
           </TableBody>
         </Table>
         {filteredRows.length === 0 ? <p className={portalStyles.emptyState}>No payment records match these filters.</p> : null}
-      </div>
+      </PortalTableShell>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className={portalStyles.dialogContent} showCloseButton>
@@ -277,7 +353,7 @@ export function PaymentHistoryPanel({ portal }: PaymentHistoryPanelProps) {
             <DialogHeader className={portalStyles.dialogHeaderRow}>
               <DialogTitle className={portalStyles.dialogTitle}>Add Payment</DialogTitle>
               <DialogDescription className={portalStyles.dialogDescription}>
-                Manually enter a new payment record for a student.
+                Create a new payment record. The invoice number will be generated automatically when you save.
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -298,8 +374,19 @@ export function PaymentHistoryPanel({ portal }: PaymentHistoryPanelProps) {
               </Select>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <Input className={portalStyles.dialogControl} placeholder="Label" value={paymentForm.label} onChange={(event) => setPaymentForm((current) => ({ ...current, label: event.target.value }))} />
-                <Input className={portalStyles.dialogControl} type="number" placeholder="Amount" value={paymentForm.amount} onChange={(event) => setPaymentForm((current) => ({ ...current, amount: event.target.value }))} />
+                <Input
+                  className={portalStyles.dialogControl}
+                  placeholder="Label"
+                  value={paymentForm.label}
+                  onChange={(event) => setPaymentForm((current) => ({ ...current, label: event.target.value }))}
+                />
+                <Input
+                  className={portalStyles.dialogControl}
+                  type="number"
+                  placeholder="Amount"
+                  value={paymentForm.amount}
+                  onChange={(event) => setPaymentForm((current) => ({ ...current, amount: event.target.value }))}
+                />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -327,18 +414,31 @@ export function PaymentHistoryPanel({ portal }: PaymentHistoryPanelProps) {
                 </Select>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Input className={portalStyles.dialogControl} type="date" value={paymentForm.date} onChange={(event) => setPaymentForm((current) => ({ ...current, date: event.target.value }))} />
-                <Input className={portalStyles.dialogControl} placeholder="Invoice number" value={paymentForm.invoice} onChange={(event) => setPaymentForm((current) => ({ ...current, invoice: event.target.value }))} />
-              </div>
+              <Input
+                className={portalStyles.dialogControl}
+                type="date"
+                value={paymentForm.date}
+                onChange={(event) => setPaymentForm((current) => ({ ...current, date: event.target.value }))}
+              />
+
+              {paymentError ? (
+                <p className="m-0 rounded-[12px] border border-[#f2d3d8] bg-[#fff7f8] px-4 py-3 text-[0.88rem] font-semibold text-[#b42318]">
+                  {paymentError}
+                </p>
+              ) : null}
             </div>
           </div>
 
           <div className={portalStyles.dialogFooter}>
-            <Button type="button" variant="secondary" className="h-10 px-4 text-[0.85rem] font-black" onClick={() => setIsDialogOpen(false)}>
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-10 px-4 text-[0.85rem] font-black"
+              onClick={() => setIsDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button type="button" className="h-10 px-4 text-[0.85rem] font-black" onClick={handleSave}>
+            <Button type="button" className="h-10 px-4 text-[0.85rem] font-black" onClick={() => void handleSave()}>
               Save Payment
             </Button>
           </div>
