@@ -8,6 +8,7 @@ import { StudentManagementPanel } from "./StudentManagementPanel";
 import { StudentDetailsPanel } from "./StudentDetailsPanel";
 import { PaymentHistoryPanel } from "./PaymentHistoryPanel";
 import { StudentDialogs } from "./StudentDialogs";
+import { EnquiriesPanel } from "./EnquiriesPanel";
 
 type AdminPortalScreenProps = {
   portal: PortalController;
@@ -31,6 +32,7 @@ export function AdminPortalScreen({ portal }: AdminPortalScreenProps) {
             <StudentManagementPanel portal={portal} />
           ) : null}
           {portal.adminView === "payments" ? <PaymentHistoryPanel portal={portal} /> : null}
+          {portal.adminView === "enquiries" ? <EnquiriesPanel portal={portal} /> : null}
         </div>
       </section>
 
