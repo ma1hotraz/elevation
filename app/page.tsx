@@ -2,6 +2,7 @@ import { BottomCta } from "./components/home/BottomCta/BottomCta";
 import { Faq } from "./components/home/Faq/Faq";
 import { Founder } from "./components/home/Founder/Founder";
 import { Hero } from "./components/home/Hero/Hero";
+import { LearningPlatform } from "./components/home/LearningPlatform/LearningPlatform";
 import { MarqueeRibbon } from "./components/home/MarqueeRibbon/MarqueeRibbon";
 import { Mission } from "./components/home/Mission/Mission";
 import { Programs } from "./components/home/Programs/Programs";
@@ -16,6 +17,7 @@ export default function Home() {
       <MarqueeRibbon />
       <Programs />
       <SampleAssessments />
+      <LearningPlatform />
       <Mission />
       <Founder />
       <Testimonials />

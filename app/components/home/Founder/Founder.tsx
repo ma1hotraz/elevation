@@ -35,7 +35,7 @@ export function Founder() {
         </h3>
         <p className="m-0 mb-4 leading-[1.75] text-[#617477] max-[520px]:text-center">
           With over a decade of teaching experience in India and Canada, I
-          founded Kulkaran Coaching Institute with a simple vision - to help
+          founded Elevation Coaching Institute with a simple vision - to help
           students build strong concepts, confidence, and character.
         </p>
         <p className="m-0 mb-4 leading-[1.75] text-[#617477] max-[520px]:text-center">

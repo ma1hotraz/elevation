@@ -7,7 +7,7 @@ export function Faq() {
     <section className={`${sectionFrame} px-0 pb-[58px] text-center`} id="faq">
       <SectionEyebrow>Frequently Asked Questions</SectionEyebrow>
       <SectionTitle>
-        Got Questions? We've Got <span className="text-[#0e8f78]">Answers.</span>
+        Got Questions? We&apos;ve Got <span className="text-[#0e8f78]">Answers.</span>
       </SectionTitle>
       <SectionIntro className="mt-[15px] mb-[42px] max-[520px]:mb-7 max-[520px]:text-[0.95rem] max-[520px]:leading-[1.6]">
         Clear answers to the most common questions about programs, batch

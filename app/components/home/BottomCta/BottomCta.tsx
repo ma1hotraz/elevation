@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { siteConfig } from "@/lib/site-config";
 
 export function BottomCta() {
   return (
@@ -48,8 +49,10 @@ export function BottomCta() {
         </div>
 
         <div className="mt-[18px] flex flex-wrap gap-x-5 gap-y-3 text-[0.92rem] font-medium text-white/82">
-          <span>Call: +1 (437) 123-4567</span>
-          <span>Location: Brampton, Ontario, Canada</span>
+          {siteConfig.phoneHref && siteConfig.phoneDisplay ? (
+            <a href={siteConfig.phoneHref} className="transition hover:text-[#8ef1ce]">Call: {siteConfig.phoneDisplay}</a>
+          ) : null}
+          <span>Location: {siteConfig.location}</span>
         </div>
       </div>
 
