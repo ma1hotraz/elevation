@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getSupabaseSecretKey } from "@/lib/env";
-import { sendEnquiryMail } from "@/lib/enquiry-mail";
 import { enquirySchema, firstZodError } from "@/lib/portal/schemas";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -83,12 +82,10 @@ export async function POST(request: Request) {
       );
     }
 
-    await sendEnquiryMail(parsed.data).catch((mailError) => {
-      console.error("Failed to send enquiry mail.", mailError);
-    });
-
     return json({ ok: true }, { status: 201 });
   } catch {
     return json({ error: "The enquiry service is temporarily unavailable." }, { status: 503 });
   }
 }
+
+
