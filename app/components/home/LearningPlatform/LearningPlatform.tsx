@@ -1,161 +1,149 @@
-import Image from "next/image";
-import Link from "next/link";
 import {
-  ArrowRight,
   BookOpenCheck,
   CalendarClock,
   ChartNoAxesCombined,
   CheckCircle2,
-  UsersRound,
+  FileText,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { SectionEyebrow, SectionIntro, SectionTitle, sectionFrame } from "../shared";
 
 const benefits = [
   {
     icon: <BookOpenCheck aria-hidden="true" />,
-    title: "Resources stay organised",
-    text: "Notes, worksheets, and test links are easy to find after class.",
+    title: "Resources",
+    text: "Notes, worksheets, and links in one place.",
   },
   {
     icon: <ChartNoAxesCombined aria-hidden="true" />,
-    title: "Progress is visible",
-    text: "Students can review scores and feedback without waiting for reminders.",
+    title: "Feedback",
+    text: "Scores and teacher comments after each test.",
   },
   {
     icon: <CalendarClock aria-hidden="true" />,
-    title: "Revision feels focused",
-    text: "The next task is clear, so study time between classes is not wasted.",
+    title: "Revision",
+    text: "Clear next steps before the next class.",
   },
 ] as const;
 
-const timeline = [
-  {
-    title: "Today",
-    detail: "Worksheet uploaded for the current topic",
-    tone: "bg-[#e8fbf5] text-[#087365]",
-  },
-  {
-    title: "Review",
-    detail: "Latest mock test feedback is ready",
-    tone: "bg-[#eef4ff] text-[#315f9f]",
-  },
-  {
-    title: "Next",
-    detail: "Revision plan before the next class",
-    tone: "bg-[#fff7df] text-[#8a6514]",
-  },
+const portalItems = [
+  ["Physics worksheet", "Uploaded today"],
+  ["IELTS mock feedback", "Review ready"],
+  ["French grammar drill", "Next practice"],
 ] as const;
-
-function cx(...parts: Array<string | false | undefined>) {
-  return parts.filter(Boolean).join(" ");
-}
 
 export function LearningPlatform() {
   return (
-    <section className={`${sectionFrame} px-0 pb-[64px]`} id="platform">
-      <div className="mx-auto mb-9 max-w-[760px] text-center max-[520px]:mb-7">
-        <SectionEyebrow>Learning Platform</SectionEyebrow>
-        <SectionTitle>
-          A Simpler Way for <span className="text-[#0e8f78]">Students to Stay Prepared</span>
-        </SectionTitle>
-        <SectionIntro className="mt-[15px] max-[520px]:text-[0.95rem] max-[520px]:leading-[1.6]">
-          Study material, feedback, and next steps stay in one place after every
-          class.
-        </SectionIntro>
-      </div>
+    <section className={`${sectionFrame} px-0 pb-[70px] max-[520px]:pb-[48px]`} id="platform">
+      <div className="relative overflow-hidden rounded-[34px] border border-[rgba(7,67,61,0.1)] bg-[linear-gradient(135deg,#ffffff_0%,#f7fbfa_45%,#eef9f5_100%)] p-[34px] shadow-[0_28px_80px_rgba(9,72,69,0.1)] max-[720px]:p-5 max-[520px]:rounded-[24px]">
+        <div className="pointer-events-none absolute right-[-90px] top-[-120px] h-[280px] w-[280px] rounded-full bg-[rgba(101,228,196,0.16)] blur-3xl" />
+        <div className="pointer-events-none absolute bottom-[-140px] left-[30%] h-[260px] w-[260px] rounded-full bg-[rgba(20,119,255,0.08)] blur-3xl" />
 
-      <div className="grid items-center gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-[28px] border border-[rgba(8,47,43,0.08)] bg-[linear-gradient(180deg,#fbfefd,#f4fbf9)] p-5 shadow-[0_20px_60px_rgba(9,72,69,0.06)] max-[520px]:rounded-[22px] max-[520px]:p-4">
-          <div className="grid gap-4">
-            {benefits.map((benefit) => (
-              <div key={benefit.title} className="grid grid-cols-[44px_1fr] gap-3">
-                <span className="grid h-11 w-11 place-items-center rounded-[14px] bg-[#e9fbf5] text-[#087365] [&_svg]:h-5 [&_svg]:w-5">
-                  {benefit.icon}
-                </span>
-                <div>
-                  <strong className="block text-[0.96rem] text-[#10252b]">{benefit.title}</strong>
-                  <p className="m-0 mt-1 max-w-[46ch] text-[0.93rem] leading-[1.62] text-[#627579]">
-                    {benefit.text}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="relative grid items-center gap-9 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <SectionEyebrow className="mx-0 text-left before:mx-0 after:mx-0">
+              Learning Platform
+            </SectionEyebrow>
+            <SectionTitle className="max-w-[640px] text-[clamp(2rem,3.8vw,3.15rem)]">
+              A polished portal for <span className="text-[#0e8f78]">every class update</span>
+            </SectionTitle>
+            <SectionIntro className="mx-0 mt-[15px] max-w-[560px] max-[520px]:text-[0.95rem] max-[520px]:leading-[1.6]">
+              Study material, feedback, and revision tasks stay organised in one
+              calm workspace students can check anytime.
+            </SectionIntro>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-[rgba(8,47,43,0.08)] pt-5">
-            <Button asChild variant="primary" className="h-11 rounded-[12px] px-4 text-[0.88rem] font-black">
-              <Link href="/portal">
-                Open Learning Portal
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-            <span className="text-[0.83rem] font-semibold text-[#627579]">
-              Works on phone, tablet, and laptop.
-            </span>
-          </div>
-        </div>
-
-        <div className="relative overflow-hidden rounded-[30px] border border-[rgba(8,47,43,0.08)] bg-[linear-gradient(180deg,#083f3b,#042825)] p-5 text-white shadow-[0_28px_74px_rgba(4,39,36,0.2)] max-[520px]:rounded-[24px] max-[520px]:p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-[14px] bg-white/10 ring-1 ring-white/10">
-                <Image src="/logo2.png" alt="Elevation Institute" width={44} height={44} className="h-8 w-8 object-contain" />
-              </span>
-              <div>
-                <p className="mb-0.5 text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#8ef1ce]">
-                  Learning Portal
-                </p>
-                <strong className="block text-[1.02rem] text-white">Student dashboard</strong>
-              </div>
-            </div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[0.7rem] font-black uppercase tracking-[0.12em] text-white/82">
-              <UsersRound className="h-3.5 w-3.5" aria-hidden="true" />
-              24/7 access
-            </span>
-          </div>
-
-          <div className="mt-5 rounded-[20px] border border-white/10 bg-white/[0.07]">
-            <div className="grid grid-cols-3 divide-x divide-white/10">
-              <div className="p-4 max-[520px]:p-3">
-                <span className="block text-[0.66rem] font-black uppercase tracking-[0.14em] text-white/56">Resources</span>
-                <strong className="mt-2 block text-[1.45rem] leading-none text-[#8ef1ce]">12</strong>
-              </div>
-              <div className="p-4 max-[520px]:p-3">
-                <span className="block text-[0.66rem] font-black uppercase tracking-[0.14em] text-white/56">Progress</span>
-                <strong className="mt-2 block text-[1.45rem] leading-none text-[#8ef1ce]">89%</strong>
-              </div>
-              <div className="p-4 max-[520px]:p-3">
-                <span className="block text-[0.66rem] font-black uppercase tracking-[0.14em] text-white/56">Next</span>
-                <strong className="mt-2 block text-[1.45rem] leading-none text-[#8ef1ce]">Today</strong>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <strong className="text-[0.86rem] text-white">This week</strong>
-              <span className="text-[0.7rem] font-black uppercase tracking-[0.12em] text-white/56">
-                Follow the plan
-              </span>
-            </div>
-
-            <div className="grid gap-2">
-              {timeline.map((item) => (
-                <div key={item.title} className="flex items-start gap-3 border-t border-white/10 pt-3 first:border-t-0 first:pt-0">
-                  <span className={cx("mt-0.5 inline-flex rounded-full px-2.5 py-1 text-[0.66rem] font-black uppercase tracking-[0.1em]", item.tone)}>
-                    {item.title}
+            <div className="mt-7 grid gap-3">
+              {benefits.map((benefit) => (
+                <div
+                  key={benefit.title}
+                  className="grid grid-cols-[42px_1fr] items-center gap-3 rounded-[18px] border border-[rgba(8,47,43,0.08)] bg-white/72 p-3 shadow-[0_12px_34px_rgba(9,72,69,0.05)] backdrop-blur"
+                >
+                  <span className="grid h-[42px] w-[42px] place-items-center rounded-[14px] bg-[#e9fbf5] text-[#087365] [&_svg]:h-5 [&_svg]:w-5">
+                    {benefit.icon}
                   </span>
-                  <p className="m-0 flex-1 text-[0.86rem] leading-[1.5] text-white/80">{item.detail}</p>
+                  <div>
+                    <strong className="block text-[0.94rem] text-[#10252b]">
+                      {benefit.title}
+                    </strong>
+                    <p className="m-0 mt-0.5 text-[0.84rem] leading-[1.45] text-[#627579]">
+                      {benefit.text}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
+
           </div>
 
-          <div className="mt-5 border-t border-white/10 pt-4">
-            <div className="flex items-center gap-2 text-[0.83rem] font-semibold text-white/78">
-              <CheckCircle2 className="h-4 w-4 text-[#8ef1ce]" aria-hidden="true" />
-              <span>Students always know what to revise next.</span>
+          <div className="relative min-h-[430px] max-[980px]:min-h-0">
+            <div className="absolute left-4 top-8 h-[84%] w-[84%] rounded-[28px] bg-[#083f3b] opacity-[0.08] blur-2xl max-[980px]:hidden" />
+            <div className="relative overflow-hidden rounded-[30px] border border-[rgba(8,47,43,0.1)] bg-[#f9fdfc] p-3 shadow-[0_30px_90px_rgba(4,39,36,0.18)] max-[520px]:rounded-[22px]">
+              <div className="rounded-[24px] bg-[linear-gradient(180deg,#083f3b,#042825)] p-4 text-white max-[520px]:rounded-[18px]">
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="m-0 text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#8ef1ce]">
+                      Student Portal
+                    </p>
+                    <strong className="mt-1 block text-[1.2rem] text-white">
+                      Today&apos;s learning plan
+                    </strong>
+                  </div>
+                  <span className="rounded-full border border-white/12 bg-white/10 px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.12em] text-white/82">
+                    Live
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 overflow-hidden rounded-[18px] border border-white/10 bg-white/[0.07]">
+                  <div className="p-4 max-[520px]:p-3">
+                    <span className="block text-[0.64rem] font-black uppercase tracking-[0.12em] text-white/55">
+                      Notes
+                    </span>
+                    <strong className="mt-2 block text-[1.42rem] leading-none text-[#8ef1ce] max-[520px]:text-[1.18rem]">
+                      12
+                    </strong>
+                  </div>
+                  <div className="border-x border-white/10 p-4 max-[520px]:p-3">
+                    <span className="block text-[0.64rem] font-black uppercase tracking-[0.12em] text-white/55">
+                      Score
+                    </span>
+                    <strong className="mt-2 block text-[1.42rem] leading-none text-[#8ef1ce] max-[520px]:text-[1.18rem]">
+                      89%
+                    </strong>
+                  </div>
+                  <div className="p-4 max-[520px]:p-3">
+                    <span className="block text-[0.64rem] font-black uppercase tracking-[0.12em] text-white/55">
+                      Next
+                    </span>
+                    <strong className="mt-2 block text-[1.42rem] leading-none text-[#8ef1ce] max-[520px]:text-[1.18rem]">
+                      Today
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3 bg-white p-4 max-[520px]:p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <strong className="text-[0.95rem] text-[#10252b]">Class updates</strong>
+                  <span className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#9aa8aa]">
+                    Ready
+                  </span>
+                </div>
+
+                {portalItems.map(([title, meta]) => (
+                  <div
+                    key={title}
+                    className="grid grid-cols-[38px_1fr_auto] items-center gap-3 rounded-[16px] border border-[rgba(8,47,43,0.08)] bg-[#fbfefd] p-3 max-[520px]:grid-cols-[38px_1fr]"
+                  >
+                    <span className="grid h-[38px] w-[38px] place-items-center rounded-[12px] bg-[#e9fbf5] text-[#087365]">
+                      <FileText className="h-4.5 w-4.5" aria-hidden="true" />
+                    </span>
+                    <div>
+                      <strong className="block text-[0.9rem] text-[#10252b]">{title}</strong>
+                      <span className="text-[0.78rem] font-semibold text-[#708084]">{meta}</span>
+                    </div>
+                    <CheckCircle2 className="h-5 w-5 text-[#0e8f78] max-[520px]:col-start-2" aria-hidden="true" />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -163,3 +151,4 @@ export function LearningPlatform() {
     </section>
   );
 }
+
